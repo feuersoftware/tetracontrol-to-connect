@@ -1,0 +1,10 @@
+node_modules/
+.output/
+.nuxt/
+.data/
+dist/
+*.log
+dist
+test-results/
+playwright-report/
+playwright/.cache/

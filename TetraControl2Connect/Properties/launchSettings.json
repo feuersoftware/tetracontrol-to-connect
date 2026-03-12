@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "TetraControl2Connect": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

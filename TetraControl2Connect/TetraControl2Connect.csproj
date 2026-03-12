@@ -1,0 +1,105 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>FeuerSoftware.$(MSBuildProjectName)</AssemblyName>
+    <RootNamespace>FeuerSoftware.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+    <Version>2.9.1</Version>
+    <Authors>Moritz Jökel, Sven Donath, Jannik Rittwage, Andreas Lampe</Authors>
+    <Company>Feuer Software GmbH</Company>
+    <Product>TetraControl2Connect</Product>
+    <Description>TetraControl Connector für unbegrenzt viele Connect-Organisationen und Standorte.</Description>
+    <Copyright>Copyright Feuer Software GmbH. All rights reserved.</Copyright>
+    <PackageProjectUrl>https://feuersoftware.com</PackageProjectUrl>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    <!-- SPA integration -->
+    <SpaRoot>AdminUI\</SpaRoot>
+    <SpaProxyServerUrl>http://localhost:3000</SpaProxyServerUrl>
+    <SpaProxyLaunchCommand>pnpm run dev</SpaProxyLaunchCommand>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;CA2254;CA1816</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;CA2254;CA1816</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Destructurama.Attributed" Version="5.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="10.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="10.0.4" />
+    <PackageReference Include="Polly" Version="8.6.6" />
+    <PackageReference Include="Serilog" Version="4.3.1" />
+    <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.5" />
+    <PackageReference Include="Websocket.Client" Version="5.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TetraControl2Connect.Shared\TetraControl2Connect.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="changelog.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="readme.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="logs\" />
+  </ItemGroup>
+
+  <!-- Exclude SPA source files from the .NET project -->
+  <ItemGroup>
+    <Content Remove="$(SpaRoot)**" />
+    <None Remove="$(SpaRoot)**" />
+  </ItemGroup>
+
+  <!-- Build the SPA during dotnet publish -->
+  <Target Name="BuildSpa" BeforeTargets="Build" Condition="!Exists('wwwroot')">
+    <Message Importance="high" Text="Admin UI not built yet. Run 'pnpm run build' in $(SpaRoot) or 'dotnet publish' to include it." />
+  </Target>
+
+  <Target Name="PublishSpa" BeforeTargets="ComputeFilesToPublish">
+    <Message Importance="high" Text="Building Admin UI SPA..." />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="pnpm install --frozen-lockfile" />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="pnpm run generate" />
+
+    <ItemGroup>
+      <DistFiles Include="$(SpaRoot).output\public\**" />
+      <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+        <RelativePath>wwwroot\%(RecursiveDir)%(FileName)%(Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+
+</Project>
