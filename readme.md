@@ -1,81 +1,89 @@
 # TetraControl2Connect
 
-[🇩🇪 Deutsche Version](readme.de.md)
-
 ## Description
 Connects multiple Connect sites (even across different organizations) with a single TetraControl instance. All configuration is managed through the built-in Admin UI.
 
-## Prerequisites
-* .NET 10.0 Runtime or later
+## Beschreibung
+Verbindet mehrere Connect-Standorte (auch aus unterschiedlichen Organisationen) mit einer TetraControl-Instanz. Die Konfiguration erfolgt bequem über die integrierte Admin-Oberfläche.
+
+---
+
+## Prerequisites / Voraussetzungen
+* .NET 10.0 Runtime or later / .NET 10.0 Runtime oder höher
 * TetraControl must be running continuously (preferably on localhost — the WebSocket connection is unencrypted!)
 * The web server must be enabled in TetraControl
 * A user with sufficient web server permissions must be configured in TetraControl
-* Each site requires a "Public Connect API" key — available in the Connect portal at https://connect.feuersoftware.com/v2/app/interfaces
+* Each site requires a "Public Connect API" key — available at https://connect.feuersoftware.com/v2/app/interfaces
 
-## Important Notes
+## Important Notes / Hinweise
 * When vehicles or users are added or modified in Connect, the application must be restarted.
 * Data can only be processed when the ISSIs of vehicles and users are correctly stored in Connect.
 
-## Installation & Initial Setup
+## Installation & Setup / Installation & Ersteinrichtung
 
-1. Extract the application to a directory
-2. Start the application — the Admin UI opens automatically at `http://localhost:5050`
-3. On first start, the database is populated with default values
-4. The setup wizard at `/setup` guides you through the essential settings
+1. Extract the application to a directory / Anwendung in ein Verzeichnis entpacken
+2. Start the application — the Admin UI opens at `http://localhost:5050` / Programm starten — die Admin-Oberfläche öffnet sich unter `http://localhost:5050`
+3. On first start, the database is populated with defaults / Beim ersten Start wird die Datenbank mit Standardwerten befüllt
+4. The setup wizard at `/setup` guides you through the settings / Der Einrichtungsassistent unter `/setup` führt durch die Einstellungen
 
-> **Upgrading from an older version:** If an existing `appsettings.json` with configuration sections is present, settings are automatically imported into the database on first start. Afterwards, the `appsettings.json` can be reduced to logging configuration only.
+> **Upgrading:** If an existing `appsettings.json` with configuration sections is present, settings are automatically imported on first start.
+>
+> **Upgrade:** Wenn eine bestehende `appsettings.json` mit Konfigurationsabschnitten vorhanden ist, werden die Einstellungen beim ersten Start automatisch importiert.
 
-## Admin UI
+## Admin UI / Admin-Oberfläche
 
-The application provides a web-based Admin UI at `http://localhost:5050`:
+Available at / Erreichbar unter `http://localhost:5050`:
 
-* **Dashboard** — Overview of all settings sections with quick access
-* **Setup Wizard** (`/setup`) — Step-by-step configuration for initial setup
-* **Settings Pages** — Editors for all 8 configuration sections:
-  * Program Options — Control which data types are transmitted and configure timeouts
-  * TetraControl Connection — Host, port, credentials
-  * Connect Sites — API keys, subnet addresses, sirens
-  * Status Mappings — Pager status values for availability and operation responses
-  * Patterns — Regex patterns for SDS alarm parsing
-  * Severity Levels — Translation of alarm severity levels to keywords
-  * Siren Callout — Control code translation for siren alarms
-  * Siren Status — Error code translation for siren monitoring
-* **Live View** (`/live`) — Real-time messages from TetraControl
-* **Backups** (`/backups`) — Configuration backup and restore
+* **Dashboard** — Overview with quick access to all settings / Übersicht mit Schnellzugriff
+* **Setup Wizard** (`/setup`) — Step-by-step initial configuration / Schritt-für-Schritt-Ersteinrichtung
+* **Settings Pages / Einstellungsseiten:**
+  * Program Options / Programmoptionen
+  * TetraControl Connection / TetraControl-Verbindung
+  * Connect Sites / Connect-Standorte
+  * Status Mappings / Status-Zuordnungen
+  * Patterns / Muster — Regex for SDS alarm parsing / Regex für SDS-Alarmauswertung
+  * Severity Levels / Schweregrade
+  * Siren Callout / Sirenen-Alarmierung
+  * Siren Status / Sirenen-Status
+* **Live View / Live-Ansicht** (`/live`) — Real-time messages / Echtzeit-Nachrichten
+* **Backups** (`/backups`) — Configuration backup & restore / Sicherung & Wiederherstellung
 
-## Database
+## Database / Datenbank
 
-All settings are stored in a SQLite database (`settings.db`) managed via EF Core Migrations. The database is automatically created and populated on first start.
+Settings are stored in SQLite (`settings.db`) managed via EF Core Migrations. Daily backups are created automatically.
 
-Daily configuration backups are created automatically and can be managed through the Admin UI.
+Einstellungen werden in SQLite (`settings.db`) gespeichert und über EF Core Migrations verwaltet. Tägliche Backups werden automatisch erstellt.
 
 ## Web API
 
-The REST API is available at `http://localhost:5050/api/settings/`:
+REST API at / REST API unter `http://localhost:5050/api/settings/`:
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/api/settings` | List all sections |
-| `GET/PUT` | `/api/settings/program` | Program options |
-| `GET/PUT` | `/api/settings/tetracontrol` | TetraControl connection |
-| `GET/PUT` | `/api/settings/connect` | Sites, subnets, sirens |
-| `GET/PUT` | `/api/settings/status` | Status mappings |
-| `GET/PUT` | `/api/settings/pattern` | Alarm parsing patterns |
-| `GET/PUT` | `/api/settings/severity` | Severity translations |
-| `GET/PUT` | `/api/settings/siren-callout` | Siren callout codes |
-| `GET/PUT` | `/api/settings/siren-status` | Siren status codes |
+| Method | Path | Description / Beschreibung |
+|--------|------|----------------------------|
+| `GET` | `/api/settings` | List all sections / Alle Abschnitte |
+| `GET/PUT` | `/api/settings/program` | Program options / Programmoptionen |
+| `GET/PUT` | `/api/settings/tetracontrol` | TetraControl connection / Verbindung |
+| `GET/PUT` | `/api/settings/connect` | Sites, subnets, sirens / Standorte, Subnetze, Sirenen |
+| `GET/PUT` | `/api/settings/status` | Status mappings / Zuordnungen |
+| `GET/PUT` | `/api/settings/pattern` | Alarm parsing patterns / Alarmauswertung |
+| `GET/PUT` | `/api/settings/severity` | Severity translations / Schweregrade |
+| `GET/PUT` | `/api/settings/siren-callout` | Siren callout codes / Sirenen-Alarmierung |
+| `GET/PUT` | `/api/settings/siren-status` | Siren status codes / Sirenen-Status |
 | `POST` | `/api/settings/import` | Import from appsettings.json |
 
 Swagger UI: `http://localhost:5050/swagger`
 
-## How It Works
-The application connects to the TetraControl web server via WebSocket and processes position data, status data, and SDS messages. Voice calls are ignored.
+## How It Works / Funktionsweise
 
-## Development
+The application connects to TetraControl via WebSocket and processes position data, status data, and SDS messages. Voice calls are ignored.
 
-### Prerequisites
+Das Programm verbindet sich über WebSocket mit TetraControl und verarbeitet Positionsdaten, Statusdaten und SDS. Funkgespräche werden ignoriert.
+
+## Development / Entwicklung
+
+### Prerequisites / Voraussetzungen
 * .NET 10.0 SDK
-* Node.js 22+ with pnpm
+* Node.js 22+ with/mit pnpm
 * Git
 
 ### Build
@@ -83,7 +91,7 @@ The application connects to the TetraControl web server via WebSocket and proces
 dotnet build
 ```
 
-### Run Tests
+### Tests
 ```bash
 dotnet test
 ```
@@ -102,38 +110,38 @@ pnpm run generate     # SPA build → .output/public/
 pnpm test             # Playwright E2E tests
 ```
 
-During development, the SPA proxy in the .NET app automatically forwards requests to the Nuxt dev server. For production, `dotnet publish` builds the Admin UI and serves it as a static SPA from `wwwroot/`.
+During development, SPA Proxy forwards requests to the Nuxt dev server. For production, `dotnet publish` builds and bundles the SPA.
+
+Im Entwicklungsmodus leitet der SPA-Proxy Anfragen an den Nuxt Dev-Server weiter. Für die Produktion baut `dotnet publish` die SPA und bündelt sie.
 
 ### Simulator
 ```bash
 dotnet run --project TetraControl2Connect.Simulator -- [port]
 ```
-Starts a WebSocket server that simulates the TetraControl protocol. Default port: 8085.
+WebSocket server simulating the TetraControl protocol. Default port: 8085.
 
-## Architecture
+## Architecture / Architektur
 
-### Projects
-* `TetraControl2Connect` — ASP.NET Core web app with hosted services, Web API, SignalR, and Admin UI (Nuxt 3 SPA)
-* `TetraControl2Connect.Shared` — Shared option classes and models
+### Projects / Projekte
+* `TetraControl2Connect` — ASP.NET Core web app (hosted services, Web API, SignalR, Nuxt 3 SPA)
+* `TetraControl2Connect.Shared` — Shared option classes and models / Gemeinsame Options-Klassen
 * `TetraControl2Connect.Test` — xUnit tests (95+)
 * `TetraControl2Connect.Simulator` — TetraControl WebSocket simulator
 
-### Data Storage
-* **SQLite** (`settings.db`) — Relational tables for all settings, managed via EF Core Migrations
-* **Automatic seeding** — On first start: imports from existing `appsettings.json` or seeds with defaults
-* **Daily backups** — Automatic snapshots on configuration changes
+### Data Storage / Datenhaltung
+* **SQLite** (`settings.db`) — Relational tables via EF Core Migrations
+* **Auto-seeding** — Imports from `appsettings.json` or seeds defaults on first start
+* **Daily backups** — Automatic snapshots / Automatische Sicherungen
 
 ### SPA Integration
-* **Development:** `Microsoft.AspNetCore.SpaProxy` automatically launches the Nuxt dev server and proxies requests
-* **Production:** `dotnet publish` builds the SPA and copies it to `wwwroot/`; ASP.NET Core serves it as static files
+* **Dev:** `Microsoft.AspNetCore.SpaProxy` launches Nuxt dev server and proxies requests
+* **Production:** `dotnet publish` builds the SPA into `wwwroot/`
 
-## License
+## License / Lizenz
 
-This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
+[GNU Affero General Public License v3.0](LICENSE)
 
 ## Copyright
 Copyright Feuer Software GmbH
 
 Website: https://feuersoftware.com
-
-All rights reserved.

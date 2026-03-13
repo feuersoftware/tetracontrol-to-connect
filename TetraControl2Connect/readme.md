@@ -1,117 +1,113 @@
 # TetraControl2Connect
 
-[🇩🇪 Deutsche Version](readme.de.md)
-
 ## Description
 Connects multiple Connect sites (even across different organizations) with a single TetraControl instance.
 
-## Prerequisites
-* TetraControl must be running continuously (preferably on localhost — the WebSocket connection is unencrypted!)
-* The web server must be enabled in TetraControl
-* A user with sufficient web server permissions must be configured in TetraControl
+## Beschreibung
+Verbindet mehrere Connect-Standorte (auch aus unterschiedlichen Organisationen) mit einer TetraControl-Instanz.
 
-## Important Notes
+---
+
+## Prerequisites / Voraussetzungen
+* TetraControl must be running continuously (preferably on localhost — WebSocket is unencrypted!)
+* The web server must be enabled in TetraControl / Der Webserver muss in TetraControl aktiviert sein
+* A user with sufficient web server permissions must be configured / Ein Benutzer mit ausreichenden Berechtigungen muss angelegt werden
+
+## Important Notes / Hinweise
 * When vehicles or users are added or modified, the application must be restarted.
-* Data can only be processed when the ISSIs of vehicles and users are correctly stored in Connect.
+* Data can only be processed when ISSIs are correctly stored in Connect.
 
-## Configuration
-All configuration is managed through the built-in Admin UI at `http://localhost:5050`. On first start, the setup wizard guides you through the essential settings.
+## Configuration / Konfiguration
 
-### TetraControl Connection
-Connection settings for TetraControl:
-* `TetraControlHost` → Network address of the TetraControl instance (hostname or IP address)
-* `TetraControlPort` → TetraControl port
-* `TetraControlUsername` → Username of the user configured in TetraControl
-* `TetraControlPassword` → Password of the user configured in TetraControl
+All configuration is managed through the Admin UI at `http://localhost:5050`. The setup wizard guides you through the essential settings on first start.
 
-### Program Options
-* `SendVehicleStatus` — Whether to transmit vehicle status updates (default: true)
-* `SendVehiclePositions` — Whether to transmit vehicle positions (default: true)
-* `SendUserOperationStatus` — Whether to transmit user operation responses (default: true)
-* `SendUserAvailability` — Whether to transmit user availability (tactical availability) (default: true)
-* `SendAlarms` — Whether to evaluate and transmit callouts (alarms) (default: true)
-* `UserAvailabilityLifetimeDays` — Number of days before a user's availability is reset
-* `WebSocketReconnectTimeoutMinutes` — Time in minutes after which the WebSocket connection is re-established if no messages are received (default: 5 minutes)
-* `PollForActiveOperationBeforeFallbackMaxRetryCount` — Maximum attempts to find an active operation in Connect before creating a fallback alarm (default: 4)
-* `PollForActiveOperationBeforeFallbackDelay` — Delay between attempts to find an active operation (format HH:mm:ss, default: 00:00:10)
-* `HeartbeatEndpointUrl` — URL for periodic HTTP GET health checks (e.g., for UptimeRobot; leave empty to disable)
-* `HeartbeatInterval` — Interval for heartbeat calls (format HH:mm:ss; leave empty to disable)
-* `IgnoreStatus5` — Whether to ignore status 5 (request to speak) (default: false)
-* `IgnoreStatus0` — Whether to ignore status 0 (priority request to speak) (default: false)
-* `IgnoreStatus9` — Whether to ignore status 9 (remote acknowledge / special control) (default: false)
-* `AddPropertyForAlarmTexts` — Whether to add the pager alarm text as an additional field when updating operations
-* `UseFullyQualifiedSubnetAddressForConnect` — Whether to use fully qualified subnet addresses (e.g., "T2C(71234567_&01 - SBI)") or short form ("SNA(&01)") (default: false)
-* `IgnoreAlarmWithoutSubnetAddresses` — Whether to ignore callouts without subnet addresses (full GSSI alert) (default: false)
-* `AcceptCalloutsForSirens` — Whether to process siren callouts (control codes, e.g., $2002) (default: false)
-* `AcceptSDSAsCalloutsWithPattern` — Whether to evaluate SDS messages as callouts using patterns (default: false)
+Die gesamte Konfiguration erfolgt über die Admin-Oberfläche unter `http://localhost:5050`. Der Einrichtungsassistent führt beim ersten Start durch die wichtigsten Einstellungen.
 
-### Status Options
-Configure the status values (numeric value, not text) sent by pagers for each status type. Refer to your pager configuration!
-* `AvailableStatus` → "Available"
-* `LimitedAvailableStatus` → "Limited availability"
-* `NotAvailableStatus` → "Not available"
-* `ComingStatus` → Operation response "Coming"
-* `NotComingStatus` → Operation response "Not coming"
-* `ComingLaterStatus` → Operation response "Coming later"
+### TetraControl Connection / TetraControl-Verbindung
+* `TetraControlHost` → Network address / Netzwerkadresse (hostname or IP)
+* `TetraControlPort` → Port
+* `TetraControlUsername` → Username / Benutzername
+* `TetraControlPassword` → Password / Passwort
 
-If a status is not used, set it to -1. Make sure this value is not used elsewhere in the pager configuration.
-Multiple status values can be specified separated by semicolons: "123;456;789" (useful for mixed pager manufacturers, e.g., Motorola and Airbus).
+### Program Options / Programmoptionen
+* `SendVehicleStatus` — Transmit vehicle status / Fahrzeugstatus übertragen (default: true)
+* `SendVehiclePositions` — Transmit vehicle positions / Fahrzeugpositionen übertragen (default: true)
+* `SendUserOperationStatus` — Transmit operation responses / Einsatzrückmeldungen übertragen (default: true)
+* `SendUserAvailability` — Transmit user availability / Verfügbarkeiten übertragen (default: true)
+* `SendAlarms` — Evaluate and transmit callouts / Alarmierungen auswerten (default: true)
+* `UserAvailabilityLifetimeDays` — Days before availability reset / Tage bis Verfügbarkeit zurückgesetzt wird
+* `WebSocketReconnectTimeoutMinutes` — Reconnect timeout in minutes / Reconnect-Timeout in Minuten (default: 5)
+* `PollForActiveOperationBeforeFallbackMaxRetryCount` — Max retries to find active operation / Max. Versuche aktiven Einsatz zu finden (default: 4)
+* `PollForActiveOperationBeforeFallbackDelay` — Delay between retries / Verzögerung zwischen Versuchen (format HH:mm:ss, default: 00:00:10)
+* `HeartbeatEndpointUrl` — URL for health checks (e.g. UptimeRobot) / URL für Monitoring
+* `HeartbeatInterval` — Heartbeat interval / Heartbeat-Intervall (format HH:mm:ss)
+* `IgnoreStatus5` — Ignore status 5 (request to speak / Sprechwunsch) (default: false)
+* `IgnoreStatus0` — Ignore status 0 (priority request / Priorisierter Sprechwunsch) (default: false)
+* `IgnoreStatus9` — Ignore status 9 (remote ack / Fremdquittung) (default: false)
+* `AddPropertyForAlarmTexts` — Add pager alarm text as additional field / Alarmtext als Zusatzfeld hinzufügen
+* `UseFullyQualifiedSubnetAddressForConnect` — Use full subnet address format / Volle Subnetzadress-Darstellung (default: false)
+* `IgnoreAlarmWithoutSubnetAddresses` — Ignore callouts without subnet addresses / Alarme ohne Subnetzadressen ignorieren (default: false)
+* `AcceptCalloutsForSirens` — Process siren callouts / Sirenenalarme verarbeiten (default: false)
+* `AcceptSDSAsCalloutsWithPattern` — Evaluate SDS as callouts using patterns / SDS als Callouts auswerten (default: false)
 
-### Severity Options
-Controls the handling of alarm severity levels (optional):
-* `UseServerityTranslationAsKeyword` — Use severity translation as keyword for fallback operations (instead of "ALARM") (default: true)
-* `SeverityTranslations` — Translations for severity levels (depends on pager programming, only the number is transmitted by TetraControl). Falls back to "ALARM" if no translation is found.
+### Status Options / Status-Zuordnungen
+Configure pager status values (numeric). Multiple values separated by semicolons (e.g. "123;456").
 
-### Siren Callout Options
-Controls the handling of siren alarm control codes (optional):
-* `UseSirenCodeTranslationAsKeyword` — Use control code translation as keyword for fallback operations (default: false)
-* `SirenCodeTranslations` — Translations for siren control codes (state/region dependent). Falls back to "ALARM" or severity translation if no match is found.
+Statuswerte vom Pager (Zahlenwert). Mehrere Werte mit Semikolon trennen.
 
-### Siren Status Options
-Controls the handling of siren status messages (siren monitoring):
-* `FailureTranslations` — Translations for all error codes that sirens can report. Checks both the SDS message text (Sirene24) and the hexadecimal status value.
+* `AvailableStatus` → Available / Verfügbar
+* `LimitedAvailableStatus` → Limited availability / Bedingt verfügbar
+* `NotAvailableStatus` → Not available / Nicht verfügbar
+* `ComingStatus` → Coming / Komme
+* `NotComingStatus` → Not coming / Komme nicht
+* `ComingLaterStatus` → Coming later / Komme später
 
-### Connect Options
-Configure the API keys from Connect. The `Name` field is a freely chosen label for easier identification.
-Multiple sites can be configured. Subnet addresses (`SubnetAddresses`) are only relevant for certain fire departments and can be left empty. The `AlarmDirectly` flag per subnet address controls whether an alarm is uploaded to Connect immediately after pager activation (bypassing the active operation search).
+Set to -1 if unused / Nicht verwendete Status auf -1 setzen.
 
-For siren monitoring, each site can have a list of assigned sirens. Defect reports will be created in the configured site.
+### Severity Options / Schweregrade
+* `UseServerityTranslationAsKeyword` — Use severity translation as operation keyword / Als Stichwort verwenden (default: true)
+* `SeverityTranslations` — Map severity numbers to keywords / Schweregrade zu Stichwörtern zuordnen
+
+### Siren Callout Options / Sirenen-Alarmierung
+* `UseSirenCodeTranslationAsKeyword` — Use control code as keyword / Steuercode als Stichwort verwenden (default: false)
+* `SirenCodeTranslations` — Map control codes to keywords / Steuercodes zu Stichwörtern zuordnen
+
+### Siren Status Options / Sirenen-Status
+* `FailureTranslations` — Map error codes to descriptions / Fehlercodes zu Beschreibungen zuordnen
+
+### Connect Options / Connect-Standorte
+Configure API keys from Connect. Each site can have subnet addresses and sirens.
+
+API-Keys aus Connect eintragen. Jeder Standort kann Subnetzadressen und Sirenen haben.
 
 ```json
-"ConnectOptions": {
-    "Sites": [
-        {
-            "Name": "Site1",
-            "Key": "<<SITE_API_KEY>>",
-            "Sirens": [
-              {
-                "Issi": "1234567",
-                "Name": "Siren Site1"
-              }
-            ],
-            "SubnetAddresses": [
-                {
-                    "Name": "Loop1",
-                    "GSSI": "12345678",
-                    "SNA": "&01",
-                    "AlarmDirectly": false
-                }
-            ]
-        }
-    ]
+{
+  "Sites": [
+    {
+      "Name": "Site1",
+      "Key": "<<API_KEY>>",
+      "Sirens": [
+        { "Issi": "1234567", "Name": "Siren 1" }
+      ],
+      "SubnetAddresses": [
+        { "Name": "Loop1", "GSSI": "12345678", "SNA": "&01", "AlarmDirectly": false }
+      ]
+    }
+  ]
 }
 ```
 
-## How It Works
-The application connects to the TetraControl web server via WebSocket and processes position data, status data, and SDS messages. Voice calls are ignored.
+## How It Works / Funktionsweise
 
-## License
+The application connects to TetraControl via WebSocket and processes position data, status data, and SDS messages. Voice calls are ignored.
 
-This project is licensed under the [GNU Affero General Public License v3.0](../LICENSE).
+Das Programm verbindet sich über WebSocket mit TetraControl und verarbeitet Positionsdaten, Statusdaten und SDS. Funkgespräche werden ignoriert.
+
+## License / Lizenz
+
+[GNU Affero General Public License v3.0](../LICENSE)
 
 ## Copyright
 Copyright Feuer Software GmbH
 
 Website: https://feuersoftware.com
-
-All rights reserved.
