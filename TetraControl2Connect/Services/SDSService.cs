@@ -50,7 +50,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
         private readonly IOptionsMonitor<SeverityOptions> _severityOptions;
         private readonly IOptionsMonitor<SirenCalloutOptions> _sirenCalloutOptions;
         private volatile RegexCache _regexCache = EmptyRegexCache;
-        private volatile AsyncRetryPolicy _updateOperationRetryPolicy = null!;
+        private volatile AsyncRetryPolicy _updateOperationRetryPolicy = null!; // initialized in constructor via BuildRetryPolicy()
         private IDisposable? _patternOptionsChangeSubscription;
         private IDisposable? _programOptionsChangeSubscription;
         private readonly ConcurrentDictionary<int, DateTime> _seenCalloutsByReference = new();
