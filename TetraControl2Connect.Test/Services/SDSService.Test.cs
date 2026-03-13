@@ -32,28 +32,30 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             var connectApiService = new Mock<IConnectApiService>(MockBehavior.Strict);
 
             var userService = new Mock<IUserService>(MockBehavior.Strict);
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(new ConnectOptions());
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(new ConnectOptions());
 
-            var programOptions = new Mock<IOptions<ProgramOptions>>(MockBehavior.Strict);
-            programOptions.Setup(o => o.Value).Returns(new ProgramOptions()
+            var programOptions = new Mock<IOptionsMonitor<ProgramOptions>>(MockBehavior.Strict);
+            programOptions.Setup(o => o.CurrentValue).Returns(new ProgramOptions()
             {
                 AddPropertyForAlarmTexts = true,
                 IgnoreAlarmWithoutSubnetAddresses = true,
                 AcceptCalloutsForSirens = false,
             });
+            programOptions.Setup(o => o.OnChange(It.IsAny<Action<ProgramOptions, string?>>())).Returns((IDisposable?)null);
 
-            var statusOptions = new Mock<IOptions<StatusOptions>>(MockBehavior.Strict);
-            statusOptions.Setup(o => o.Value).Returns(new StatusOptions());
+            var statusOptions = new Mock<IOptionsMonitor<StatusOptions>>(MockBehavior.Strict);
+            statusOptions.Setup(o => o.CurrentValue).Returns(new StatusOptions());
 
-            var severityOptions = new Mock<IOptions<SeverityOptions>>(MockBehavior.Strict);
-            severityOptions.Setup(o => o.Value).Returns(new SeverityOptions());
+            var severityOptions = new Mock<IOptionsMonitor<SeverityOptions>>(MockBehavior.Strict);
+            severityOptions.Setup(o => o.CurrentValue).Returns(new SeverityOptions());
 
-            var sirenCalloutOptions = new Mock<IOptions<SirenCalloutOptions>>(MockBehavior.Strict);
-            sirenCalloutOptions.Setup(o => o.Value).Returns(new SirenCalloutOptions());
+            var sirenCalloutOptions = new Mock<IOptionsMonitor<SirenCalloutOptions>>(MockBehavior.Strict);
+            sirenCalloutOptions.Setup(o => o.CurrentValue).Returns(new SirenCalloutOptions());
 
-            var patternOptions = new Mock<IOptions<PatternOptions>>(MockBehavior.Strict);
-            patternOptions.Setup(o => o.Value).Returns(new PatternOptions());
+            var patternOptions = new Mock<IOptionsMonitor<PatternOptions>>(MockBehavior.Strict);
+            patternOptions.Setup(o => o.CurrentValue).Returns(new PatternOptions());
+            patternOptions.Setup(o => o.OnChange(It.IsAny<Action<PatternOptions, string?>>())).Returns((IDisposable?)null);
 
             var sitesService = new Mock<ISitesService>();
 
@@ -120,9 +122,9 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 .Verifiable();
 
             var userService = new Mock<IUserService>();
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(new ConnectOptions());
-            connectOptions.Setup(o => o.Value.Sites).Returns(
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(new ConnectOptions());
+            connectOptions.Setup(o => o.CurrentValue.Sites).Returns(
             [
                 new Site()
                 {
@@ -171,18 +173,18 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 },
             ]);
 
-            var programOptions = new Mock<IOptions<ProgramOptions>>();
-            programOptions.Setup(o => o.Value).Returns(new ProgramOptions()
+            var programOptions = new Mock<IOptionsMonitor<ProgramOptions>>();
+            programOptions.Setup(o => o.CurrentValue).Returns(new ProgramOptions()
             {
                 AddPropertyForAlarmTexts = true,
                 AcceptCalloutsForSirens = false,
             });
 
-            var statusOptions = new Mock<IOptions<StatusOptions>>();
-            statusOptions.Setup(o => o.Value).Returns(new StatusOptions());
+            var statusOptions = new Mock<IOptionsMonitor<StatusOptions>>();
+            statusOptions.Setup(o => o.CurrentValue).Returns(new StatusOptions());
 
-            var severityOptions = new Mock<IOptions<SeverityOptions>>(MockBehavior.Strict);
-            severityOptions.Setup(o => o.Value).Returns(new SeverityOptions()
+            var severityOptions = new Mock<IOptionsMonitor<SeverityOptions>>(MockBehavior.Strict);
+            severityOptions.Setup(o => o.CurrentValue).Returns(new SeverityOptions()
             {
                 SeverityTranslations = new Dictionary<string, string>()
                 {
@@ -201,11 +203,12 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                     { "15", "KatS-Alarm" },
                 }
             });
-            var sirenCalloutOptions = new Mock<IOptions<SirenCalloutOptions>>(MockBehavior.Strict);
-            sirenCalloutOptions.Setup(o => o.Value).Returns(new SirenCalloutOptions());
+            var sirenCalloutOptions = new Mock<IOptionsMonitor<SirenCalloutOptions>>(MockBehavior.Strict);
+            sirenCalloutOptions.Setup(o => o.CurrentValue).Returns(new SirenCalloutOptions());
 
-            var patternOptions = new Mock<IOptions<PatternOptions>>(MockBehavior.Strict);
-            patternOptions.Setup(o => o.Value).Returns(new PatternOptions());
+            var patternOptions = new Mock<IOptionsMonitor<PatternOptions>>(MockBehavior.Strict);
+            patternOptions.Setup(o => o.CurrentValue).Returns(new PatternOptions());
+            patternOptions.Setup(o => o.OnChange(It.IsAny<Action<PatternOptions, string?>>())).Returns((IDisposable?)null);
 
             var sitesService = new Mock<ISitesService>();
 
@@ -279,9 +282,9 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 .Verifiable();
 
             var userService = new Mock<IUserService>();
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(new ConnectOptions());
-            connectOptions.Setup(o => o.Value.Sites).Returns(
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(new ConnectOptions());
+            connectOptions.Setup(o => o.CurrentValue.Sites).Returns(
             [
                 new Site()
                 {
@@ -315,18 +318,18 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 },
             ]);
 
-            var programOptions = new Mock<IOptions<ProgramOptions>>();
-            programOptions.Setup(o => o.Value).Returns(new ProgramOptions()
+            var programOptions = new Mock<IOptionsMonitor<ProgramOptions>>();
+            programOptions.Setup(o => o.CurrentValue).Returns(new ProgramOptions()
             {
                 AddPropertyForAlarmTexts = true,
                 AcceptCalloutsForSirens = false,
             });
 
-            var statusOptions = new Mock<IOptions<StatusOptions>>();
-            statusOptions.Setup(o => o.Value).Returns(new StatusOptions());
+            var statusOptions = new Mock<IOptionsMonitor<StatusOptions>>();
+            statusOptions.Setup(o => o.CurrentValue).Returns(new StatusOptions());
 
-            var severityOptions = new Mock<IOptions<SeverityOptions>>(MockBehavior.Strict);
-            severityOptions.Setup(o => o.Value).Returns(new SeverityOptions()
+            var severityOptions = new Mock<IOptionsMonitor<SeverityOptions>>(MockBehavior.Strict);
+            severityOptions.Setup(o => o.CurrentValue).Returns(new SeverityOptions()
             {
                 SeverityTranslations = new Dictionary<string, string>()
                 {
@@ -346,11 +349,12 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 }
             });
 
-            var sirenCalloutOptions = new Mock<IOptions<SirenCalloutOptions>>(MockBehavior.Strict);
-            sirenCalloutOptions.Setup(o => o.Value).Returns(new SirenCalloutOptions());
+            var sirenCalloutOptions = new Mock<IOptionsMonitor<SirenCalloutOptions>>(MockBehavior.Strict);
+            sirenCalloutOptions.Setup(o => o.CurrentValue).Returns(new SirenCalloutOptions());
 
-            var patternOptions = new Mock<IOptions<PatternOptions>>(MockBehavior.Strict);
-            patternOptions.Setup(o => o.Value).Returns(new PatternOptions());
+            var patternOptions = new Mock<IOptionsMonitor<PatternOptions>>(MockBehavior.Strict);
+            patternOptions.Setup(o => o.CurrentValue).Returns(new PatternOptions());
+            patternOptions.Setup(o => o.OnChange(It.IsAny<Action<PatternOptions, string?>>())).Returns((IDisposable?)null);
 
             var sitesService = new Mock<ISitesService>();
 
@@ -401,9 +405,9 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 .Verifiable();
 
             var userService = new Mock<IUserService>();
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(new ConnectOptions());
-            connectOptions.Setup(o => o.Value.Sites).Returns(
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(new ConnectOptions());
+            connectOptions.Setup(o => o.CurrentValue.Sites).Returns(
             [
                 new Site()
                 {
@@ -421,19 +425,19 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 },
             ]);
 
-            var programOptions = new Mock<IOptions<ProgramOptions>>();
-            programOptions.Setup(o => o.Value).Returns(new ProgramOptions()
+            var programOptions = new Mock<IOptionsMonitor<ProgramOptions>>();
+            programOptions.Setup(o => o.CurrentValue).Returns(new ProgramOptions()
             {
                 PollForActiveOperationBeforeFallbackMaxRetryCount = 2,
                 PollForActiveOperationBeforeFallbackDelay = TimeSpan.FromSeconds(1), // Otherwise the test will run 40 seconds
                 AcceptCalloutsForSirens = false,
             });
 
-            var statusOptions = new Mock<IOptions<StatusOptions>>();
-            statusOptions.Setup(o => o.Value).Returns(new StatusOptions());
+            var statusOptions = new Mock<IOptionsMonitor<StatusOptions>>();
+            statusOptions.Setup(o => o.CurrentValue).Returns(new StatusOptions());
 
-            var severityOptions = new Mock<IOptions<SeverityOptions>>(MockBehavior.Strict);
-            severityOptions.Setup(o => o.Value).Returns(new SeverityOptions()
+            var severityOptions = new Mock<IOptionsMonitor<SeverityOptions>>(MockBehavior.Strict);
+            severityOptions.Setup(o => o.CurrentValue).Returns(new SeverityOptions()
             {
                 SeverityTranslations = new Dictionary<string, string>()
                 {
@@ -452,11 +456,12 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                     { "15", "KatS-Alarm" },
                 }
             });
-            var sirenCalloutOptions = new Mock<IOptions<SirenCalloutOptions>>(MockBehavior.Strict);
-            sirenCalloutOptions.Setup(o => o.Value).Returns(new SirenCalloutOptions());
+            var sirenCalloutOptions = new Mock<IOptionsMonitor<SirenCalloutOptions>>(MockBehavior.Strict);
+            sirenCalloutOptions.Setup(o => o.CurrentValue).Returns(new SirenCalloutOptions());
 
-            var patternOptions = new Mock<IOptions<PatternOptions>>(MockBehavior.Strict);
-            patternOptions.Setup(o => o.Value).Returns(new PatternOptions());
+            var patternOptions = new Mock<IOptionsMonitor<PatternOptions>>(MockBehavior.Strict);
+            patternOptions.Setup(o => o.CurrentValue).Returns(new PatternOptions());
+            patternOptions.Setup(o => o.OnChange(It.IsAny<Action<PatternOptions, string?>>())).Returns((IDisposable?)null);
 
             var sitesService = new Mock<ISitesService>();
 
@@ -481,7 +486,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             await service.HandleSds(dto);
 
-            getOperationCallsCount.Should().Be(programOptions.Object.Value.PollForActiveOperationBeforeFallbackMaxRetryCount + 1);
+            getOperationCallsCount.Should().Be(programOptions.Object.CurrentValue.PollForActiveOperationBeforeFallbackMaxRetryCount + 1);
             connectApiService.VerifyAll();
             connectApiService.VerifyNoOtherCalls();
         }
@@ -511,9 +516,9 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 .Verifiable();
 
             var userService = new Mock<IUserService>();
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(new ConnectOptions());
-            connectOptions.Setup(o => o.Value.Sites).Returns(
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(new ConnectOptions());
+            connectOptions.Setup(o => o.CurrentValue.Sites).Returns(
             [
                 new Site()
                 {
@@ -532,19 +537,19 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 },
             ]);
 
-            var programOptions = new Mock<IOptions<ProgramOptions>>();
-            programOptions.Setup(o => o.Value).Returns(new ProgramOptions()
+            var programOptions = new Mock<IOptionsMonitor<ProgramOptions>>();
+            programOptions.Setup(o => o.CurrentValue).Returns(new ProgramOptions()
             {
                 AddPropertyForAlarmTexts = true,
                 AcceptCalloutsForSirens = false,
                 UpdateExistingOperations = false,
             });
 
-            var statusOptions = new Mock<IOptions<StatusOptions>>();
-            statusOptions.Setup(o => o.Value).Returns(new StatusOptions());
+            var statusOptions = new Mock<IOptionsMonitor<StatusOptions>>();
+            statusOptions.Setup(o => o.CurrentValue).Returns(new StatusOptions());
 
-            var severityOptions = new Mock<IOptions<SeverityOptions>>(MockBehavior.Strict);
-            severityOptions.Setup(o => o.Value).Returns(new SeverityOptions()
+            var severityOptions = new Mock<IOptionsMonitor<SeverityOptions>>(MockBehavior.Strict);
+            severityOptions.Setup(o => o.CurrentValue).Returns(new SeverityOptions()
             {
                 SeverityTranslations = new Dictionary<string, string>()
                 {
@@ -563,11 +568,12 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                     { "15", "KatS-Alarm" },
                 }
             });
-            var sirenCalloutOptions = new Mock<IOptions<SirenCalloutOptions>>(MockBehavior.Strict);
-            sirenCalloutOptions.Setup(o => o.Value).Returns(new SirenCalloutOptions());
+            var sirenCalloutOptions = new Mock<IOptionsMonitor<SirenCalloutOptions>>(MockBehavior.Strict);
+            sirenCalloutOptions.Setup(o => o.CurrentValue).Returns(new SirenCalloutOptions());
 
-            var patternOptions = new Mock<IOptions<PatternOptions>>(MockBehavior.Strict);
-            patternOptions.Setup(o => o.Value).Returns(new PatternOptions());
+            var patternOptions = new Mock<IOptionsMonitor<PatternOptions>>(MockBehavior.Strict);
+            patternOptions.Setup(o => o.CurrentValue).Returns(new PatternOptions());
+            patternOptions.Setup(o => o.OnChange(It.IsAny<Action<PatternOptions, string?>>())).Returns((IDisposable?)null);
 
             var sitesService = new Mock<ISitesService>();
 
@@ -622,8 +628,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 .Returns(Task.CompletedTask);
 
             var userService = new Mock<IUserService>();
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(new ConnectOptions()
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(new ConnectOptions()
             {
                 Sites =
                 [
@@ -644,17 +650,17 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 ]
             });
 
-            var programOptions = new Mock<IOptions<ProgramOptions>>();
-            programOptions.Setup(o => o.Value).Returns(new ProgramOptions()
+            var programOptions = new Mock<IOptionsMonitor<ProgramOptions>>();
+            programOptions.Setup(o => o.CurrentValue).Returns(new ProgramOptions()
             {
                 AcceptSDSAsCalloutsWithPattern = true,
             });
 
-            var statusOptions = new Mock<IOptions<StatusOptions>>();
-            statusOptions.Setup(o => o.Value).Returns(new StatusOptions());
+            var statusOptions = new Mock<IOptionsMonitor<StatusOptions>>();
+            statusOptions.Setup(o => o.CurrentValue).Returns(new StatusOptions());
 
-            var severityOptions = new Mock<IOptions<SeverityOptions>>(MockBehavior.Strict);
-            severityOptions.Setup(o => o.Value).Returns(new SeverityOptions()
+            var severityOptions = new Mock<IOptionsMonitor<SeverityOptions>>(MockBehavior.Strict);
+            severityOptions.Setup(o => o.CurrentValue).Returns(new SeverityOptions()
             {
                 SeverityTranslations = new Dictionary<string, string>()
                 {
@@ -673,11 +679,11 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                     { "15", "KatS-Alarm" },
                 }
             });
-            var sirenCalloutOptions = new Mock<IOptions<SirenCalloutOptions>>(MockBehavior.Strict);
-            sirenCalloutOptions.Setup(o => o.Value).Returns(new SirenCalloutOptions());
+            var sirenCalloutOptions = new Mock<IOptionsMonitor<SirenCalloutOptions>>(MockBehavior.Strict);
+            sirenCalloutOptions.Setup(o => o.CurrentValue).Returns(new SirenCalloutOptions());
 
-            var patternOptions = new Mock<IOptions<PatternOptions>>(MockBehavior.Strict);
-            patternOptions.Setup(o => o.Value).Returns(new PatternOptions()
+            var patternOptions = new Mock<IOptionsMonitor<PatternOptions>>(MockBehavior.Strict);
+            patternOptions.Setup(o => o.CurrentValue).Returns(new PatternOptions()
             {
                 NumberPattern = "Nummer: ([^\n]*)",
                 KeywordPattern = "Stichwort: ([^\n]*)",
@@ -697,6 +703,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                     }
                 ]
             });
+            patternOptions.Setup(o => o.OnChange(It.IsAny<Action<PatternOptions, string?>>())).Returns((IDisposable?)null);
 
             var sitesService = new Mock<ISitesService>();
 

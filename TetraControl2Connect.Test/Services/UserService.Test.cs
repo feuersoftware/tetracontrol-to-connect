@@ -44,8 +44,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var users = TestHelper.GenerateUsers(100);
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(options);
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(options);
 
             var connectApiService = new Mock<IConnectApiService>();
             connectApiService
@@ -104,8 +104,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var users = TestHelper.GenerateUsers(100);
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(options);
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(options);
 
             var connectApiService = new Mock<IConnectApiService>();
             connectApiService
@@ -163,8 +163,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var testUsers = TestHelper.GenerateUsers(100);
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(options);
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(options);
 
             var connectApiService = new Mock<IConnectApiService>();
             connectApiService
@@ -223,8 +223,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var testUsers = TestHelper.GenerateUsers(100);
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(options);
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(options);
 
             var connectApiService = new Mock<IConnectApiService>();
             connectApiService

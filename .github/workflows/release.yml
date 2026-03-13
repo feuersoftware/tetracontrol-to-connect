@@ -17,7 +17,10 @@ jobs:
     name: Determine release version from tag
     runs-on: ubuntu-latest
     outputs:
+      release_tag: ${{ steps.set_version.outputs.release_tag }}
       release_version: ${{ steps.set_version.outputs.release_version }}
+      numeric_version: ${{ steps.set_version.outputs.numeric_version }}
+      is_prerelease: ${{ steps.set_version.outputs.is_prerelease }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,7 +34,7 @@ jobs:
             exit 1
           fi
           echo "Tag commit is on main."
-      - name: Validate tag and set version
+      - name: Validate tag and normalize versions
         id: set_version
         shell: bash
         run: |
@@ -40,9 +43,23 @@ jobs:
             echo "Error: Workflow must be triggered by a tag 'v*'." >&2
             exit 1
           fi
-          ver="${GITHUB_REF#refs/tags/v}"
+          tag="${GITHUB_REF#refs/tags/}"
+          ver="${tag#v}"
+          numericVer="${ver%%-*}"
+          isPrerelease=false
+          if [[ "$ver" == *-* ]]; then
+            isPrerelease=true
+          fi
+          echo "Release tag: $tag"
           echo "Release version: $ver"
-          echo "release_version=$ver" >> "$GITHUB_OUTPUT"
+          echo "Numeric assembly/file version: $numericVer"
+          echo "Prerelease: $isPrerelease"
+          {
+            echo "release_tag=$tag"
+            echo "release_version=$ver"
+            echo "numeric_version=$numericVer"
+            echo "is_prerelease=$isPrerelease"
+          } >> "$GITHUB_OUTPUT"
       - name: Show previous tag diff (informational)
         shell: bash
         run: |
@@ -117,19 +134,20 @@ jobs:
           $rid = '${{ matrix.rid }}'
           $workspace = '${{ github.workspace }}'
           $outDir = Join-Path $workspace (Join-Path 'publish' $rid)
-          $ver = '${{ needs.version.outputs.release_version }}'
+          $releaseVersion = '${{ needs.version.outputs.release_version }}'
+          $numericVersion = '${{ needs.version.outputs.numeric_version }}'
           $commitShort = git rev-parse --short HEAD
-          Write-Host "Publishing for $rid (ReleaseVersion=$ver, Commit=$commitShort)"
+          Write-Host "Publishing for $rid (ReleaseVersion=$releaseVersion, NumericVersion=$numericVersion, Commit=$commitShort)"
           dotnet publish TetraControl2Connect/TetraControl2Connect.csproj `
             -c Release `
             -r $rid `
             /p:PublishSingleFile=true `
             /p:PublishTrimmed=false `
             /p:SelfContained=true `
-            /p:Version=$ver `
-            /p:AssemblyVersion=$ver `
-            /p:FileVersion=$ver `
-            /p:InformationalVersion="$ver+$commitShort" `
+            /p:Version=$releaseVersion `
+            /p:AssemblyVersion=$numericVersion `
+            /p:FileVersion=$numericVersion `
+            /p:InformationalVersion="$releaseVersion+$commitShort" `
             -o $outDir
 
       - name: Prepare artifact folder
@@ -210,19 +228,20 @@ jobs:
           $rid = '${{ matrix.rid }}'
           $workspace = '${{ github.workspace }}'
           $outDir = Join-Path $workspace (Join-Path 'publish-sim' $rid)
-          $ver = '${{ needs.version.outputs.release_version }}'
+          $releaseVersion = '${{ needs.version.outputs.release_version }}'
+          $numericVersion = '${{ needs.version.outputs.numeric_version }}'
           $commitShort = git rev-parse --short HEAD
-          Write-Host "Publishing simulator for $rid (ReleaseVersion=$ver)"
+          Write-Host "Publishing simulator for $rid (ReleaseVersion=$releaseVersion, NumericVersion=$numericVersion)"
           dotnet publish TetraControl2Connect.Simulator/TetraControl2Connect.Simulator.csproj `
             -c Release `
             -r $rid `
             /p:PublishSingleFile=true `
             /p:PublishTrimmed=false `
             /p:SelfContained=true `
-            /p:Version=$ver `
-            /p:AssemblyVersion=$ver `
-            /p:FileVersion=$ver `
-            /p:InformationalVersion="$ver+$commitShort" `
+            /p:Version=$releaseVersion `
+            /p:AssemblyVersion=$numericVersion `
+            /p:FileVersion=$numericVersion `
+            /p:InformationalVersion="$releaseVersion+$commitShort" `
             -o $outDir
 
       - name: Prepare simulator artifact
@@ -310,20 +329,33 @@ jobs:
         run: |
           set -euo pipefail
           ver='${{ needs.version.outputs.release_version }}'
-          tag="v$ver"
-          files=( $(find downloaded_artifacts -type f -name '*.zip') )
+          tag='${{ needs.version.outputs.release_tag }}'
+          isPrerelease='${{ needs.version.outputs.is_prerelease }}'
+          mapfile -t files < <(find downloaded_artifacts -type f -name '*.zip')
           if [ ${#files[@]} -eq 0 ]; then echo "No ZIP files to upload" >&2; exit 1; fi
           checksums=$(find downloaded_artifacts -type f -name 'checksums.sha256.txt' -maxdepth 2 || true)
+          assets=( "${files[@]}" )
+          if [ -n "$checksums" ]; then
+            assets+=( "$checksums" )
+          fi
           echo "Assets: ${#files[@]} ZIP(s)"
           [ -n "$checksums" ] && echo "Checksums file: $checksums"
+          title="TetraControl2Connect $tag"
           if gh release view "$tag" >/dev/null 2>&1; then
             echo 'Release exists: uploading/refreshing assets'
-            gh release upload "$tag" "${files[@]}" $checksums --clobber
+            if [[ "$isPrerelease" == 'true' ]]; then
+              gh release edit "$tag" --title "$title" --prerelease
+            else
+              gh release edit "$tag" --title "$title"
+            fi
+            gh release upload "$tag" "${assets[@]}" --clobber
           else
             echo 'Creating new release with auto-generated notes'
-            gh release create "$tag" "${files[@]}" $checksums \
-              --title "TetraControl2Connect v$ver" \
-              --generate-notes
+            createArgs=( --title "$title" --generate-notes )
+            if [[ "$isPrerelease" == 'true' ]]; then
+              createArgs+=( --prerelease )
+            fi
+            gh release create "$tag" "${assets[@]}" "${createArgs[@]}"
           fi
 
       - name: Upload final artifacts bundle

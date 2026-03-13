@@ -14,9 +14,9 @@ namespace FeuerSoftware.TetraControl2Connect.Services
     public class TetraControlClient : IDisposable, ITetraControlClient
     {
         private readonly ILogger<TetraControlClient> _log;
-        private readonly TetraControlOptions _tetraControlOptions;
-        private readonly ProgramOptions _programOptions;
-        private readonly WebsocketClient _wsClient;
+        private readonly IOptionsMonitor<TetraControlOptions> _tetraControlOptions;
+        private readonly IOptionsMonitor<ProgramOptions> _programOptions;
+        private WebsocketClient _wsClient;
         private readonly Subject<TetraControlDto> _statusSubject = new();
         private readonly Subject<TetraControlDto> _positionSubject = new();
         private readonly Subject<TetraControlDto> _sDSSubject = new();
@@ -25,30 +25,39 @@ namespace FeuerSoftware.TetraControl2Connect.Services
         private IDisposable? _reconnectSubscription;
         private IDisposable? _disconnectionSubscription;
         private IDisposable? _dataReceivedSubscription;
+        private IDisposable? _tetraControlOnChangeSubscription;
+        private IDisposable? _programOnChangeSubscription;
+        private bool _isStarted;
+        private readonly SemaphoreSlim _reconnectLock = new(1, 1);
 
         public TetraControlClient(
             ILogger<TetraControlClient> log,
-            IOptions<TetraControlOptions> tetraControlOptions,
-            IOptions<ProgramOptions> programOptions)
+            IOptionsMonitor<TetraControlOptions> tetraControlOptions,
+            IOptionsMonitor<ProgramOptions> programOptions)
         {
             _log = log ?? throw new ArgumentNullException(nameof(log));
-            _tetraControlOptions = tetraControlOptions?.Value ?? throw new ArgumentNullException(nameof(tetraControlOptions));
-            _programOptions = programOptions?.Value ?? throw new ArgumentNullException(nameof(programOptions));
+            _tetraControlOptions = tetraControlOptions ?? throw new ArgumentNullException(nameof(tetraControlOptions));
+            _programOptions = programOptions ?? throw new ArgumentNullException(nameof(programOptions));
 
+            _wsClient = CreateWsClient();
+        }
+
+        private WebsocketClient CreateWsClient()
+        {
             var factory = new Func<ClientWebSocket>(() => new ClientWebSocket
             {
                 Options =
                 {
                     KeepAliveInterval = TimeSpan.FromSeconds(30),
                     Credentials = new NetworkCredential(
-                        userName: _tetraControlOptions.TetraControlUsername,
-                        password: _tetraControlOptions.TetraControlPassword),
+                        userName: _tetraControlOptions.CurrentValue.TetraControlUsername,
+                        password: _tetraControlOptions.CurrentValue.TetraControlPassword),
                 }
             });
 
-            _wsClient = new(_tetraControlOptions.WebSocketUri, factory)
+            return new(_tetraControlOptions.CurrentValue.WebSocketUri, factory)
             {
-                ReconnectTimeout = TimeSpan.FromMinutes(_programOptions.WebSocketReconnectTimeoutMinutes),
+                ReconnectTimeout = TimeSpan.FromMinutes(_programOptions.CurrentValue.WebSocketReconnectTimeoutMinutes),
                 IsReconnectionEnabled = true
             };
         }
@@ -65,7 +74,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
         public async Task Start()
         {
-            _log.LogInformation("Connecting to TetraControl WebSocket at {Uri}...", _tetraControlOptions.WebSocketUri);
+            _log.LogInformation("Connecting to TetraControl WebSocket at {Uri}...", _tetraControlOptions.CurrentValue.WebSocketUri);
 
             try
             {
@@ -73,25 +82,27 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "WebSocket connection to {Uri} failed.", _tetraControlOptions.WebSocketUri);
+                _log.LogError(ex, "WebSocket connection to {Uri} failed.", _tetraControlOptions.CurrentValue.WebSocketUri);
                 _connectionSubject.OnNext(false);
                 return;
             }
 
             if (_wsClient.IsRunning)
             {
-                _log.LogInformation("✓ Connected to TetraControl at {Uri}", _tetraControlOptions.WebSocketUri);
+                _log.LogInformation("✓ Connected to TetraControl at {Uri}", _tetraControlOptions.CurrentValue.WebSocketUri);
             }
             else
             {
-                _log.LogError("✗ Could not connect to TetraControl at {Uri}. Is the server running?", _tetraControlOptions.WebSocketUri);
+                _log.LogError("✗ Could not connect to TetraControl at {Uri}. Is the server running?", _tetraControlOptions.CurrentValue.WebSocketUri);
             }
 
+            _isStarted = true;
             _connectionSubject.OnNext(_wsClient.IsRunning);
         }
 
         public async Task Stop()
         {
+            _isStarted = false;
             _log.LogDebug("Stopping TetraControl client...");
 
             _positionSubject.OnCompleted();
@@ -106,13 +117,108 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
         public void Dispose()
         {
+            _tetraControlOnChangeSubscription?.Dispose();
+            _programOnChangeSubscription?.Dispose();
             _reconnectSubscription?.Dispose();
             _disconnectionSubscription?.Dispose();
             _dataReceivedSubscription?.Dispose();
+            _reconnectLock.Dispose();
             _wsClient?.Dispose();
         }
 
+        private async Task ApplySettingsChangeAsync()
+        {
+            if (!await _reconnectLock.WaitAsync(0))
+            {
+                _log.LogDebug("Settings change already in progress, skipping...");
+                return;
+            }
+
+            try
+            {
+                _log.LogInformation("TetraControl settings changed. Reconnecting WebSocket with new settings...");
+
+                _reconnectSubscription?.Dispose();
+                _disconnectionSubscription?.Dispose();
+                _dataReceivedSubscription?.Dispose();
+
+                var oldClient = _wsClient;
+                try
+                {
+                    await oldClient.Stop(WebSocketCloseStatus.NormalClosure, "Settings changed");
+                }
+                catch (Exception ex)
+                {
+                    _log.LogWarning(ex, "Error while stopping old WebSocket client during settings reload.");
+                }
+                finally
+                {
+                    oldClient.Dispose();
+                }
+
+                _wsClient = CreateWsClient();
+                SubscribeToWsClient();
+
+                try
+                {
+                    await _wsClient.Start();
+                    _log.LogInformation("✓ Reconnected to TetraControl at {Uri} after settings change.", _tetraControlOptions.CurrentValue.WebSocketUri);
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError(ex, "Failed to reconnect to TetraControl after settings change.");
+                    _connectionSubject.OnNext(false);
+                }
+            }
+            finally
+            {
+                _reconnectLock.Release();
+            }
+        }
+
         public void Init()
+        {
+            _tetraControlOnChangeSubscription = _tetraControlOptions.OnChange(opts =>
+            {
+                if (!_isStarted) return;
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await ApplySettingsChangeAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.LogError(ex, "Error applying TetraControl settings change.");
+                    }
+                });
+            });
+
+            _programOnChangeSubscription = _programOptions.OnChange(opts =>
+            {
+                _ = Task.Run(async () =>
+                {
+                    if (!await _reconnectLock.WaitAsync(0))
+                    {
+                        _log.LogDebug("Settings change in progress, skipping reconnect timeout update.");
+                        return;
+                    }
+                    try
+                    {
+                        _wsClient.ReconnectTimeout = TimeSpan.FromMinutes(opts.WebSocketReconnectTimeoutMinutes);
+                        _log.LogInformation("ProgramOptions changed. Updated WebSocket reconnect timeout to {Timeout} minutes.", opts.WebSocketReconnectTimeoutMinutes);
+                    }
+                    finally
+                    {
+                        _reconnectLock.Release();
+                    }
+                });
+            });
+
+            SubscribeToWsClient();
+        }
+
+        private void SubscribeToWsClient()
         {
             _disconnectionSubscription = _wsClient.DisconnectionHappened.Subscribe(info =>
             {

@@ -68,11 +68,11 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var log = new Mock<ILogger<VehicleService>>();
 
-            var connectOptionsMock = new Mock<IOptions<ConnectOptions>>();
-            connectOptionsMock.Setup(o => o.Value).Returns(connectOptions);
+            var connectOptionsMock = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptionsMock.Setup(o => o.CurrentValue).Returns(connectOptions);
 
-            var programOptionsMock = new Mock<IOptions<ProgramOptions>>();
-            programOptionsMock.Setup(o => o.Value).Returns(_programOptions);
+            var programOptionsMock = new Mock<IOptionsMonitor<ProgramOptions>>();
+            programOptionsMock.Setup(o => o.CurrentValue).Returns(_programOptions);
 
             var connectApiService = new Mock<IConnectApiService>();
             connectApiService
@@ -144,11 +144,11 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var log = new Mock<ILogger<VehicleService>>();
 
-            var connectOptionsMock = new Mock<IOptions<ConnectOptions>>();
-            connectOptionsMock.Setup(o => o.Value).Returns(connectOptions);
+            var connectOptionsMock = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptionsMock.Setup(o => o.CurrentValue).Returns(connectOptions);
 
-            var programOptionsMock = new Mock<IOptions<ProgramOptions>>();
-            programOptionsMock.Setup(o => o.Value).Returns(_programOptions);
+            var programOptionsMock = new Mock<IOptionsMonitor<ProgramOptions>>();
+            programOptionsMock.Setup(o => o.CurrentValue).Returns(_programOptions);
 
             var connectApiService = new Mock<IConnectApiService>();
             connectApiService
@@ -201,11 +201,11 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var vehicles = TestHelper.GenerateVehicles(100);
 
-            var connectOptionsMock = new Mock<IOptions<ConnectOptions>>();
-            connectOptionsMock.Setup(o => o.Value).Returns(connectOptions);
+            var connectOptionsMock = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptionsMock.Setup(o => o.CurrentValue).Returns(connectOptions);
 
-            var programOptionsMock = new Mock<IOptions<ProgramOptions>>();
-            programOptionsMock.Setup(o => o.Value).Returns(_programOptions);
+            var programOptionsMock = new Mock<IOptionsMonitor<ProgramOptions>>();
+            programOptionsMock.Setup(o => o.CurrentValue).Returns(_programOptions);
 
             var connectApiService = new Mock<IConnectApiService>();
             connectApiService
@@ -254,11 +254,11 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var vehicles = TestHelper.GenerateVehicles(100);
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(options);
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(options);
 
-            var programOptionsMock = new Mock<IOptions<ProgramOptions>>();
-            programOptionsMock.Setup(o => o.Value).Returns(_programOptions);
+            var programOptionsMock = new Mock<IOptionsMonitor<ProgramOptions>>();
+            programOptionsMock.Setup(o => o.CurrentValue).Returns(_programOptions);
 
             var connectApiService = new Mock<IConnectApiService>();
             connectApiService
@@ -303,11 +303,11 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var vehicles = TestHelper.GenerateVehicles(100);
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(options);
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(options);
 
-            var programOptionsMock = new Mock<IOptions<ProgramOptions>>();
-            programOptionsMock.Setup(o => o.Value).Returns(_programOptions);
+            var programOptionsMock = new Mock<IOptionsMonitor<ProgramOptions>>();
+            programOptionsMock.Setup(o => o.CurrentValue).Returns(_programOptions);
 
             var connectApiService = new Mock<IConnectApiService>();
             connectApiService
@@ -355,11 +355,11 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var vehicles = TestHelper.GenerateVehicles(100);
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(options);
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(options);
 
-            var programOptionsMock = new Mock<IOptions<ProgramOptions>>();
-            programOptionsMock.Setup(o => o.Value).Returns(_programOptions);
+            var programOptionsMock = new Mock<IOptionsMonitor<ProgramOptions>>();
+            programOptionsMock.Setup(o => o.CurrentValue).Returns(_programOptions);
 
             var connectApiService = new Mock<IConnectApiService>();
             connectApiService

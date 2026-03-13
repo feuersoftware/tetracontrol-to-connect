@@ -57,8 +57,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             var log = new Mock<ILogger<SitesService>>();
             var connectApiService = new Mock<IConnectApiService>();
 
-            var connectOptionsMock = new Mock<IOptions<ConnectOptions>>();
-            connectOptionsMock.Setup(o => o.Value).Returns(connectOptions);
+            var connectOptionsMock = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptionsMock.Setup(o => o.CurrentValue).Returns(connectOptions);
 
             var service = new SitesService(
                 log.Object,

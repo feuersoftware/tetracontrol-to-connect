@@ -1,5 +1,6 @@
 using FeuerSoftware.TetraControl2Connect.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 
 namespace FeuerSoftware.TetraControl2Connect.Endpoints;
@@ -28,12 +29,13 @@ public static class BackupEndpoints
         }).WithName("CreateBackup");
 
         // POST /api/backups/{id}/restore — Restore from a backup
-        group.MapPost("/{id:int}/restore", async (int id, AppDbContext db) =>
+        group.MapPost("/{id:int}/restore", async (int id, AppDbContext db, IConfiguration configuration) =>
         {
             var backup = await db.SettingsBackups.FindAsync(id);
             if (backup is null) return Results.NotFound(new { error = "Backup not found." });
 
             await RestoreFromBackupAsync(db, backup);
+            ((IConfigurationRoot)configuration).Reload();
             return Results.Ok(new { message = "Settings restored.", backup.Id, backup.CreatedAt, backup.Description });
         }).WithName("RestoreBackup");
 

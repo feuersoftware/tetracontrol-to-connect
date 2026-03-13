@@ -12,15 +12,15 @@ namespace FeuerSoftware.TetraControl2Connect.Services
     public class VehicleService(
         ILogger<VehicleService> log,
         IConnectApiService connectApiService,
-        IOptions<ConnectOptions> connectOptions,
-        IOptions<ProgramOptions> programOptions) : IVehicleService
+        IOptionsMonitor<ConnectOptions> connectOptions,
+        IOptionsMonitor<ProgramOptions> programOptions) : IVehicleService
     {
         public const double PositionTolerance = 0.00009d;
 
         private readonly ILogger<VehicleService> _log = log ?? throw new ArgumentNullException(nameof(log));
         private readonly IConnectApiService _connectApiService = connectApiService ?? throw new ArgumentNullException(nameof(connectApiService));
-        private readonly ConnectOptions _connectOptions = connectOptions?.Value ?? throw new ArgumentNullException(nameof(connectOptions));
-        private readonly ProgramOptions _programOptions = programOptions?.Value ?? throw new ArgumentNullException(nameof(programOptions));
+        private readonly IOptionsMonitor<ConnectOptions> _connectOptions = connectOptions ?? throw new ArgumentNullException(nameof(connectOptions));
+        private readonly IOptionsMonitor<ProgramOptions> _programOptions = programOptions ?? throw new ArgumentNullException(nameof(programOptions));
         private readonly HashSet<VehicleModel> _vehicles = [];
         private readonly ConcurrentDictionary<string, List<string>> _vehicleAccessTokens = new();
         private readonly ConcurrentDictionary<string, int> _vehicleStatusCache = new();
@@ -125,9 +125,9 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                 StatusTimestamp = DateTime.Now,
             };
 
-            if ((status.Status == 5 && _programOptions.IgnoreStatus5) ||
-                status.Status == 0 && _programOptions.IgnoreStatus0 ||
-                status.Status == 9 && _programOptions.IgnoreStatus9)
+            if ((status.Status == 5 && _programOptions.CurrentValue.IgnoreStatus5) ||
+                status.Status == 0 && _programOptions.CurrentValue.IgnoreStatus0 ||
+                status.Status == 9 && _programOptions.CurrentValue.IgnoreStatus9)
             {
                 _log.LogInformation("Ignoring status because of enabled suppression.");
                 return;
@@ -178,7 +178,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             _vehicles.Clear();
             _vehicleAccessTokens.Clear();
 
-            foreach (var site in _connectOptions.Sites)
+            foreach (var site in _connectOptions.CurrentValue.Sites)
             {
                 var vehicles = await _connectApiService.GetVehicles(site.Key).ConfigureAwait(false);
 

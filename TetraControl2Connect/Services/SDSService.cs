@@ -17,30 +17,42 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 {
     public class SDSService : ISDSService
     {
+        private sealed record RegexCache(
+            Regex Keyword,
+            Regex Facts,
+            Regex Street,
+            Regex HouseNumber,
+            Regex City,
+            Regex District,
+            Regex ZipCode,
+            Regex Longitude,
+            Regex Latitude,
+            Regex ReporterName,
+            Regex ReporterPhoneNumber,
+            Regex Ric,
+            Regex Number);
+
+        private static readonly RegexCache EmptyRegexCache = new(
+            new(string.Empty), new(string.Empty), new(string.Empty),
+            new(string.Empty), new(string.Empty), new(string.Empty),
+            new(string.Empty), new(string.Empty), new(string.Empty),
+            new(string.Empty), new(string.Empty), new(string.Empty),
+            new(string.Empty));
+
         private readonly ILogger<SDSService> _log;
         private readonly IConnectApiService _connectApiService;
-        private readonly ConnectOptions _connectOptions;
-        private readonly PatternOptions _patternOptions;
-        private readonly ProgramOptions _programOptions;
-        private readonly StatusOptions _statusOptions;
+        private readonly IOptionsMonitor<ConnectOptions> _connectOptions;
+        private readonly IOptionsMonitor<PatternOptions> _patternOptions;
+        private readonly IOptionsMonitor<ProgramOptions> _programOptions;
+        private readonly IOptionsMonitor<StatusOptions> _statusOptions;
         private readonly IUserService _userService;
         private readonly ISitesService _sitesService;
-        private readonly SeverityOptions _severityOptions;
-        private readonly SirenCalloutOptions _sirenCalloutOptions;
-        private readonly Regex _keywordRegex = new(string.Empty);
-        private readonly Regex _factsRegex = new(string.Empty);
-        private readonly Regex _streetRegex = new(string.Empty);
-        private readonly Regex _houseNumberRegex = new(string.Empty);
-        private readonly Regex _cityRegex = new(string.Empty);
-        private readonly Regex _districtRegex = new(string.Empty);
-        private readonly Regex _zipCodeRegex = new(string.Empty);
-        private readonly Regex _longitudeRegex = new(string.Empty);
-        private readonly Regex _latitudeRegex = new(string.Empty);
-        private readonly Regex _reporterNameRegex = new(string.Empty);
-        private readonly Regex _reporterPhoneNumberRegex = new(string.Empty);
-        private readonly Regex _ricRegex = new(string.Empty);
-        private readonly Regex _numberRegex = new(string.Empty);
-        private readonly AsyncRetryPolicy _updateOperationRetryPolicy;
+        private readonly IOptionsMonitor<SeverityOptions> _severityOptions;
+        private readonly IOptionsMonitor<SirenCalloutOptions> _sirenCalloutOptions;
+        private volatile RegexCache _regexCache = EmptyRegexCache;
+        private volatile AsyncRetryPolicy _updateOperationRetryPolicy = null!; // initialized in constructor via BuildRetryPolicy()
+        private IDisposable? _patternOptionsChangeSubscription;
+        private IDisposable? _programOptionsChangeSubscription;
         private readonly ConcurrentDictionary<int, DateTime> _seenCalloutsByReference = new();
         private readonly ConcurrentDictionary<string, DateTime> _fallbackPublishes = new();
 
@@ -48,48 +60,79 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             ILogger<SDSService> log,
             IConnectApiService connectApiService,
             IUserService userService,
-            IOptions<ConnectOptions> connectOptions,
-            IOptions<ProgramOptions> programOptions,
-            IOptions<StatusOptions> statusOptions,
+            IOptionsMonitor<ConnectOptions> connectOptions,
+            IOptionsMonitor<ProgramOptions> programOptions,
+            IOptionsMonitor<StatusOptions> statusOptions,
             ISitesService sitesService,
-            IOptions<SeverityOptions> severityOptions,
-            IOptions<SirenCalloutOptions> sirenCalloutOptions,
-            IOptions<PatternOptions> patternOptions)
+            IOptionsMonitor<SeverityOptions> severityOptions,
+            IOptionsMonitor<SirenCalloutOptions> sirenCalloutOptions,
+            IOptionsMonitor<PatternOptions> patternOptions)
         {
             _log = log ?? throw new ArgumentNullException(nameof(log));
             _connectApiService = connectApiService ?? throw new ArgumentNullException(nameof(connectApiService));
-            _connectOptions = connectOptions?.Value ?? throw new ArgumentNullException(nameof(connectOptions));
-            _patternOptions = patternOptions?.Value ?? throw new ArgumentNullException(nameof(patternOptions));
-            _programOptions = programOptions?.Value ?? throw new ArgumentNullException(nameof(programOptions));
-            _statusOptions = statusOptions?.Value ?? throw new ArgumentNullException(nameof(statusOptions));
+            _connectOptions = connectOptions ?? throw new ArgumentNullException(nameof(connectOptions));
+            _patternOptions = patternOptions ?? throw new ArgumentNullException(nameof(patternOptions));
+            _programOptions = programOptions ?? throw new ArgumentNullException(nameof(programOptions));
+            _statusOptions = statusOptions ?? throw new ArgumentNullException(nameof(statusOptions));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _sitesService = sitesService ?? throw new ArgumentNullException(nameof(sitesService));
-            _severityOptions = severityOptions?.Value ?? throw new ArgumentNullException(nameof(severityOptions));
-            _sirenCalloutOptions = sirenCalloutOptions?.Value ?? throw new ArgumentNullException(nameof(sirenCalloutOptions));
+            _severityOptions = severityOptions ?? throw new ArgumentNullException(nameof(severityOptions));
+            _sirenCalloutOptions = sirenCalloutOptions ?? throw new ArgumentNullException(nameof(sirenCalloutOptions));
 
-            if (_programOptions.AcceptSDSAsCalloutsWithPattern)
+            BuildRegexes();
+            BuildRetryPolicy();
+
+            _patternOptionsChangeSubscription = _patternOptions.OnChange((_, _) =>
             {
-                _keywordRegex = new Regex(_patternOptions.KeywordPattern, RegexOptions.Compiled);
-                _factsRegex = new Regex(_patternOptions.FactsPattern, RegexOptions.Compiled);
-                _streetRegex = new Regex(_patternOptions.StreetPattern, RegexOptions.Compiled);
-                _houseNumberRegex = new Regex(_patternOptions.HouseNumberPattern, RegexOptions.Compiled);
-                _cityRegex = new Regex(_patternOptions.CityPattern, RegexOptions.Compiled);
-                _districtRegex = new Regex(_patternOptions.DistrictPattern, RegexOptions.Compiled);
-                _zipCodeRegex = new Regex(_patternOptions.ZipCodePattern, RegexOptions.Compiled);
-                _longitudeRegex = new Regex(_patternOptions.LongitudePattern, RegexOptions.Compiled);
-                _latitudeRegex = new Regex(_patternOptions.LatitudePattern, RegexOptions.Compiled);
-                _reporterNameRegex = new Regex(_patternOptions.ReporterNamePattern, RegexOptions.Compiled);
-                _reporterPhoneNumberRegex = new Regex(_patternOptions.ReporterPhoneNumberPattern, RegexOptions.Compiled);
-                _ricRegex = new Regex(_patternOptions.RicPattern, RegexOptions.Compiled);
-                _numberRegex = new Regex(_patternOptions.NumberPattern, RegexOptions.Compiled);
-            }
+                try { BuildRegexes(); }
+                catch (Exception ex) { _log.LogError(ex, "Failed to rebuild regex patterns from updated options."); }
+            });
+            _programOptionsChangeSubscription = _programOptions.OnChange((_, _) =>
+            {
+                try
+                {
+                    BuildRegexes();
+                    BuildRetryPolicy();
+                }
+                catch (Exception ex) { _log.LogError(ex, "Failed to rebuild from updated program options."); }
+            });
+        }
 
+        private void BuildRegexes()
+        {
+            if (_programOptions.CurrentValue.AcceptSDSAsCalloutsWithPattern)
+            {
+                _regexCache = new RegexCache(
+                    Keyword: new Regex(_patternOptions.CurrentValue.KeywordPattern, RegexOptions.Compiled),
+                    Facts: new Regex(_patternOptions.CurrentValue.FactsPattern, RegexOptions.Compiled),
+                    Street: new Regex(_patternOptions.CurrentValue.StreetPattern, RegexOptions.Compiled),
+                    HouseNumber: new Regex(_patternOptions.CurrentValue.HouseNumberPattern, RegexOptions.Compiled),
+                    City: new Regex(_patternOptions.CurrentValue.CityPattern, RegexOptions.Compiled),
+                    District: new Regex(_patternOptions.CurrentValue.DistrictPattern, RegexOptions.Compiled),
+                    ZipCode: new Regex(_patternOptions.CurrentValue.ZipCodePattern, RegexOptions.Compiled),
+                    Longitude: new Regex(_patternOptions.CurrentValue.LongitudePattern, RegexOptions.Compiled),
+                    Latitude: new Regex(_patternOptions.CurrentValue.LatitudePattern, RegexOptions.Compiled),
+                    ReporterName: new Regex(_patternOptions.CurrentValue.ReporterNamePattern, RegexOptions.Compiled),
+                    ReporterPhoneNumber: new Regex(_patternOptions.CurrentValue.ReporterPhoneNumberPattern, RegexOptions.Compiled),
+                    Ric: new Regex(_patternOptions.CurrentValue.RicPattern, RegexOptions.Compiled),
+                    Number: new Regex(_patternOptions.CurrentValue.NumberPattern, RegexOptions.Compiled));
+            }
+        }
+
+        private void BuildRetryPolicy()
+        {
             _updateOperationRetryPolicy = Policy
                 .Handle<InvalidOperationException>()
                 .WaitAndRetryAsync(
-                    _programOptions.PollForActiveOperationBeforeFallbackMaxRetryCount,
-                    retryCount => _programOptions.PollForActiveOperationBeforeFallbackDelay,
+                    _programOptions.CurrentValue.PollForActiveOperationBeforeFallbackMaxRetryCount,
+                    retryCount => _programOptions.CurrentValue.PollForActiveOperationBeforeFallbackDelay,
                     (exception, sleepDuration, retryCount, context) => _log.LogInformation($"Operation is not present. Exception: '{exception.Message}' Retrying (Attempt '{retryCount}' after '{sleepDuration}')..."));
+        }
+
+        public void Dispose()
+        {
+            _patternOptionsChangeSubscription?.Dispose();
+            _programOptionsChangeSubscription?.Dispose();
         }
 
         public async Task HandleSds(TetraControlDto sds)
@@ -101,27 +144,27 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             switch (sdsType)
             {
                 case SdsType.Callout:
-                    if (!_programOptions.SendAlarms)
+                    if (!_programOptions.CurrentValue.SendAlarms)
                     {
-                        _log.LogDebug($"Ignoring SDS because {nameof(_programOptions.SendAlarms)} is disabled in program options.");
+                        _log.LogDebug($"Ignoring SDS because {nameof(_programOptions.CurrentValue.SendAlarms)} is disabled in program options.");
                         return;
                     }
 
                     await HandleCallout(sds);
                     break;
                 case SdsType.CalloutFeedback:
-                    if (!_programOptions.SendUserOperationStatus)
+                    if (!_programOptions.CurrentValue.SendUserOperationStatus)
                     {
-                        _log.LogDebug($"Ignoring SDS because {nameof(_programOptions.SendUserOperationStatus)} is disabled in program options.");
+                        _log.LogDebug($"Ignoring SDS because {nameof(_programOptions.CurrentValue.SendUserOperationStatus)} is disabled in program options.");
                         return;
                     }
 
                     await HandleCalloutFeedback(sds);
                     break;
                 case SdsType.TacticalAvailability:
-                    if (!_programOptions.SendUserAvailability)
+                    if (!_programOptions.CurrentValue.SendUserAvailability)
                     {
-                        _log.LogDebug($"Ignoring SDS because {nameof(_programOptions.SendUserAvailability)} is disabled in program options.");
+                        _log.LogDebug($"Ignoring SDS because {nameof(_programOptions.CurrentValue.SendUserAvailability)} is disabled in program options.");
                         return;
                     }
 
@@ -129,9 +172,9 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                     break;
                 case SdsType.Unknown:
                 default:
-                    if (!_programOptions.AcceptSDSAsCalloutsWithPattern)
+                    if (!_programOptions.CurrentValue.AcceptSDSAsCalloutsWithPattern)
                     {
-                        _log.LogWarning($"Because {nameof(_programOptions.AcceptSDSAsCalloutsWithPattern)} is false: Ignoring SDS...");
+                        _log.LogWarning($"Because {nameof(_programOptions.CurrentValue.AcceptSDSAsCalloutsWithPattern)} is false: Ignoring SDS...");
                         break;
                     }
 
@@ -143,7 +186,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
         private async Task HandleCallout(TetraControlDto sds)
         {
             var isSirenCallout = sds.IsCalloutForSirens();
-            if (isSirenCallout && !_programOptions.AcceptCalloutsForSirens)
+            if (isSirenCallout && !_programOptions.CurrentValue.AcceptCalloutsForSirens)
             {
                 _log.LogInformation("SDS is Alarm for Sirens and AcceptCalloutsForSirens is set to false. Ignoring...");
 
@@ -171,35 +214,35 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             {
                 _log.LogInformation("Could not extract any SNA from SDS. Must be alarm for GSSI without subnet addresses. Collecting all sites with this GSSI...");
 
-                if (_programOptions.IgnoreAlarmWithoutSubnetAddresses)
+                if (_programOptions.CurrentValue.IgnoreAlarmWithoutSubnetAddresses)
                 {
                     _log.LogWarning("IgnoreAlarmWithoutSubnetAddresses is set to true. Ignoring callout for GSSI.");
                     return;
                 }
 
-                snas = _connectOptions.Sites
+                snas = _connectOptions.CurrentValue.Sites
                     .SelectMany(s => s.SubnetAddresses)
                     .Where(sna => sna.GSSI == sds.DestinationSSI)
                     .ToList();
 
                 _log.LogDebug("Collected SNAs from Configuration are with GSSI '{Gssi}: {snas}'", sds.DestinationSSI, snas);
 
-                sitesForNormalAlarm = _connectOptions.Sites
+                sitesForNormalAlarm = _connectOptions.CurrentValue.Sites
                     .Where(s => s.SubnetAddresses.Any(sna => sna.GSSI == sds.DestinationSSI && sna.AlarmDirectly == false));
-                sitesForDirectAlarm = _connectOptions.Sites
+                sitesForDirectAlarm = _connectOptions.CurrentValue.Sites
                     .Where(s => s.SubnetAddresses.Any(sna => sna.GSSI == sds.DestinationSSI && sna.AlarmDirectly == true));
             }
             else
             {
-                snas = _connectOptions.Sites
+                snas = _connectOptions.CurrentValue.Sites
                     .SelectMany(s => s.SubnetAddresses)
                     .Where(sna => snasRaw.Contains(sna.SNA) && sna.GSSI == sds.DestinationSSI)
                     .ToList();
                 _log.LogInformation("Collected SNAs from Configuration are '{@snas}' and GSSI is '{@destinationIssi}'.", snas, sds.DestinationSSI);
 
-                sitesForNormalAlarm = _connectOptions.Sites
+                sitesForNormalAlarm = _connectOptions.CurrentValue.Sites
                     .Where(s => s.SubnetAddresses.Any(sna => snasRaw.Contains(sna.SNA) && sna.GSSI == sds.DestinationSSI && sna.AlarmDirectly == false));
-                sitesForDirectAlarm = _connectOptions.Sites
+                sitesForDirectAlarm = _connectOptions.CurrentValue.Sites
                     .Where(s => s.SubnetAddresses.Any(sna => snasRaw.Contains(sna.SNA) && sna.GSSI == sds.DestinationSSI && sna.AlarmDirectly == true));
             }
 
@@ -312,19 +355,19 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                 }
             };
 
-            if (_statusOptions.ComingStatus.SplitToIntArray(';').Contains(statuscode.Value))
+            if (_statusOptions.CurrentValue.ComingStatus.SplitToIntArray(';').Contains(statuscode.Value))
             {
                 await PostUserOperationStatus(UserOperationStatus.Coming);
                 return;
             }
 
-            if (_statusOptions.NotComingStatus.SplitToIntArray(';').Contains(statuscode.Value))
+            if (_statusOptions.CurrentValue.NotComingStatus.SplitToIntArray(';').Contains(statuscode.Value))
             {
                 await PostUserOperationStatus(UserOperationStatus.NotComing);
                 return;
             }
 
-            if (_statusOptions.ComingLaterStatus.SplitToIntArray(';').Contains(statuscode.Value))
+            if (_statusOptions.CurrentValue.ComingLaterStatus.SplitToIntArray(';').Contains(statuscode.Value))
             {
                 await PostUserOperationStatus(UserOperationStatus.ComingLater);
                 return;
@@ -362,7 +405,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                     var availabiltyModel = new UserAvailabilityModel()
                     {
                         Status = status,
-                        Until = DateTime.Now.AddDays(_programOptions.UserAvailabilityLifetimeDays),
+                        Until = DateTime.Now.AddDays(_programOptions.CurrentValue.UserAvailabilityLifetimeDays),
                     };
 
                     await _connectApiService.PutUserAvailability(token, user.Id, availabiltyModel);
@@ -376,19 +419,19 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             }
             ;
 
-            if (_statusOptions.AvailableStatus.SplitToIntArray(';').Contains(statuscode.Value))
+            if (_statusOptions.CurrentValue.AvailableStatus.SplitToIntArray(';').Contains(statuscode.Value))
             {
                 await PutAvailabilityStatus(AvailabilityStatus.Available);
                 return;
             }
 
-            if (_statusOptions.NotAvailableStatus.SplitToIntArray(';').Contains(statuscode.Value))
+            if (_statusOptions.CurrentValue.NotAvailableStatus.SplitToIntArray(';').Contains(statuscode.Value))
             {
                 await PutAvailabilityStatus(AvailabilityStatus.NotAvailable);
                 return;
             }
 
-            if (_statusOptions.LimitedAvailableStatus.SplitToIntArray(';').Contains(statuscode.Value))
+            if (_statusOptions.CurrentValue.LimitedAvailableStatus.SplitToIntArray(';').Contains(statuscode.Value))
             {
                 await PutAvailabilityStatus(AvailabilityStatus.LimitedAvailable);
                 return;
@@ -409,9 +452,9 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                 throw new InvalidOperationException($"All active operations for site '{site.Name}' are outdated.");
             }
 
-            if (!_programOptions.UpdateExistingOperations)
+            if (!_programOptions.CurrentValue.UpdateExistingOperations)
             {
-                _log.LogInformation($"Found recently alerted or updated operation. Will not update this operation because {nameof(_programOptions.UpdateExistingOperations)} is false.");
+                _log.LogInformation($"Found recently alerted or updated operation. Will not update this operation because {nameof(_programOptions.CurrentValue.UpdateExistingOperations)} is false.");
 
                 return;
             }
@@ -422,7 +465,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                 .ThenByDescending(o => o.LastUpdateAt)
                 .First();
 
-            var snasToAdd = snas.Select(sna => sna.ToStringForConnect(_programOptions.UseFullyQualifiedSubnetAddressForConnect));
+            var snasToAdd = snas.Select(sna => sna.ToStringForConnect(_programOptions.CurrentValue.UseFullyQualifiedSubnetAddressForConnect));
 
             if (!string.IsNullOrEmpty(operationToUpdate.Ric) && snasToAdd.All(s => operationToUpdate.Ric.Contains(s)))
             {
@@ -440,7 +483,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             operationToUpdate.Ric += ricToAppend;
             _log.LogDebug("Updating Operation with SNAs in RIC: {@Operation}", operationToUpdate);
 
-            if (!operationToUpdate.Properties.Any(p => p.Key == "Alarmtext TC") && _programOptions.AddPropertyForAlarmTexts)
+            if (!operationToUpdate.Properties.Any(p => p.Key == "Alarmtext TC") && _programOptions.CurrentValue.AddPropertyForAlarmTexts)
             {
                 var property = new OperationPropertyModel() { Key = "Alarmtext TC", Value = sds.Text.RemoveSubnetAddresses() };
                 operationToUpdate.Properties.Add(property);
@@ -483,7 +526,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
             _log.LogDebug($"Extracted RIC is: {operation.Ric}");
 
-            var sitesForAlarm = _connectOptions.Sites
+            var sitesForAlarm = _connectOptions.CurrentValue.Sites
                 .Where(s => s.SubnetAddresses
                     .Any(sa => operation.Ric.Contains(sa.Name)));
 
@@ -503,13 +546,13 @@ namespace FeuerSoftware.TetraControl2Connect.Services
         {
             OperationModel operation;
 
-            if (_patternOptions.IsEnabled)
+            if (_patternOptions.CurrentValue.IsEnabled)
             {
                 try
                 {
                     operation = ResolveOperationWithPattern(sds.Text);
                     var ric = string.Join(" | ", snas.Select(sna => sna
-                        .ToStringForConnect(_programOptions.UseFullyQualifiedSubnetAddressForConnect))
+                        .ToStringForConnect(_programOptions.CurrentValue.UseFullyQualifiedSubnetAddressForConnect))
                         .Distinct());
 
                     if (isGSSIAlarm)
@@ -581,7 +624,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                 && siteInfo.Address.Lng > 0;
 
             var ric = string.Join(" | ", snas.Select(sna => sna
-                .ToStringForConnect(_programOptions.UseFullyQualifiedSubnetAddressForConnect))
+                .ToStringForConnect(_programOptions.CurrentValue.UseFullyQualifiedSubnetAddressForConnect))
                 .Distinct());
 
             if (isGSSIAlarm)
@@ -591,16 +634,16 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
             var keyword = Constants.DefaultKeyword;
 
-            if (_severityOptions.UseServerityTranslationAsKeyword)
+            if (_severityOptions.CurrentValue.UseServerityTranslationAsKeyword)
             {
-                keyword = _severityOptions.SeverityTranslations.TryGetValue(sds.ExtractCalloutSeverity(), out var severity) ?
+                keyword = _severityOptions.CurrentValue.SeverityTranslations.TryGetValue(sds.ExtractCalloutSeverity(), out var severity) ?
                     severity.ToUpper() :
                     Constants.DefaultKeyword;
             }
 
-            if (_sirenCalloutOptions.UseSirenCodeTranslationAsKeyword && isSirenCallout)
+            if (_sirenCalloutOptions.CurrentValue.UseSirenCodeTranslationAsKeyword && isSirenCallout)
             {
-                keyword = _sirenCalloutOptions.SirenCodeTranslations.TryGetValue(sds.ExtractSirenCode(), out var sirenCodeTranslation) ?
+                keyword = _sirenCalloutOptions.CurrentValue.SirenCodeTranslations.TryGetValue(sds.ExtractSirenCode(), out var sirenCodeTranslation) ?
                     sirenCodeTranslation.ToUpper() :
                     Constants.DefaultKeyword;
             }
@@ -642,8 +685,10 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
         private OperationModel ResolveOperationWithPattern(string text)
         {
-            var longitude = _longitudeRegex.Match(text).Groups[1].Value.Trim();
-            var latitude = _latitudeRegex.Match(text).Groups[1].Value.Trim();
+            var cache = _regexCache; // snapshot for thread safety
+
+            var longitude = cache.Longitude.Match(text).Groups[1].Value.Trim();
+            var latitude = cache.Latitude.Match(text).Groups[1].Value.Trim();
 
             // Get the number separator for this culture and replace any others with it
             var separator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
@@ -662,13 +707,13 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 #pragma warning restore IDE0018 // Inline variable declaration
             var hasValidPosition = double.TryParse(longitude, out longitudeValue) && double.TryParse(latitude, out latitudeValue);
 
-            var reporterName = _reporterNameRegex.Match(text).Groups[1].Value.Trim();
-            var reporterPhoneNumber = _reporterPhoneNumberRegex.Match(text).Groups[1].Value.Trim();
+            var reporterName = cache.ReporterName.Match(text).Groups[1].Value.Trim();
+            var reporterPhoneNumber = cache.ReporterPhoneNumber.Match(text).Groups[1].Value.Trim();
             var hasValidReporter = !string.IsNullOrWhiteSpace(reporterName) || !string.IsNullOrWhiteSpace(reporterPhoneNumber);
 
             var additionalProperties = new List<OperationPropertyModel>();
 
-            foreach (var additionalProperty in _patternOptions.AdditionalProperties)
+            foreach (var additionalProperty in _patternOptions.CurrentValue.AdditionalProperties)
             {
                 var regex = new Regex(additionalProperty.Pattern);
 
@@ -688,11 +733,11 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
             var operation = new OperationModel()
             {
-                Number = _numberRegex.Match(text).Groups[1].Value.Trim(),
-                Keyword = _keywordRegex.Match(text).Groups[1].Value.Trim(),
+                Number = cache.Number.Match(text).Groups[1].Value.Trim(),
+                Keyword = cache.Keyword.Match(text).Groups[1].Value.Trim(),
                 Start = DateTime.Now,
-                Facts = _factsRegex.Match(text).Groups[1].Value.Trim(),
-                Ric = _ricRegex.Match(text).Groups[1].Value.Trim(),
+                Facts = cache.Facts.Match(text).Groups[1].Value.Trim(),
+                Ric = cache.Ric.Match(text).Groups[1].Value.Trim(),
                 Source = $"TetraControl2Connect {Constants.Version}",
                 Reporter = hasValidReporter ? new ReporterModel()
                 {
@@ -701,11 +746,11 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                 } : null,
                 Address = new AddressModel()
                 {
-                    City = _cityRegex.Match(text).Groups[1].Value.Trim(),
-                    Street = _streetRegex.Match(text).Groups[1].Value.Trim(),
-                    HouseNumber = _houseNumberRegex.Match(text).Groups[1].Value.Trim(),
-                    District = _districtRegex.Match(text).Groups[1].Value.Trim(),
-                    ZipCode = _zipCodeRegex.Match(text).Groups[1].Value.Trim(),
+                    City = cache.City.Match(text).Groups[1].Value.Trim(),
+                    Street = cache.Street.Match(text).Groups[1].Value.Trim(),
+                    HouseNumber = cache.HouseNumber.Match(text).Groups[1].Value.Trim(),
+                    District = cache.District.Match(text).Groups[1].Value.Trim(),
+                    ZipCode = cache.ZipCode.Match(text).Groups[1].Value.Trim(),
                 },
                 Position = hasValidPosition ? new PositionModel()
                 {
