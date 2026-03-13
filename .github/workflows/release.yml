@@ -147,7 +147,7 @@ jobs:
           New-Item -ItemType Directory -Path $artifactDir | Out-Null
           Copy-Item -Path (Join-Path $publishDir '*') -Destination $artifactDir -Recurse -Force
           # Copy documentation files
-          $extras = @('readme.md', 'readme.de.md', 'LICENSE')
+          $extras = @('readme.md', 'LICENSE')
           foreach ($e in $extras) {
             $full = Join-Path $workspace $e
             if (Test-Path $full) { Copy-Item -Path $full -Destination $artifactDir -Force }
