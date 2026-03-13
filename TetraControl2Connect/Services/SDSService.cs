@@ -17,6 +17,28 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 {
     public class SDSService : ISDSService
     {
+        private sealed record RegexCache(
+            Regex Keyword,
+            Regex Facts,
+            Regex Street,
+            Regex HouseNumber,
+            Regex City,
+            Regex District,
+            Regex ZipCode,
+            Regex Longitude,
+            Regex Latitude,
+            Regex ReporterName,
+            Regex ReporterPhoneNumber,
+            Regex Ric,
+            Regex Number);
+
+        private static readonly RegexCache EmptyRegexCache = new(
+            new(string.Empty), new(string.Empty), new(string.Empty),
+            new(string.Empty), new(string.Empty), new(string.Empty),
+            new(string.Empty), new(string.Empty), new(string.Empty),
+            new(string.Empty), new(string.Empty), new(string.Empty),
+            new(string.Empty));
+
         private readonly ILogger<SDSService> _log;
         private readonly IConnectApiService _connectApiService;
         private readonly IOptionsMonitor<ConnectOptions> _connectOptions;
@@ -27,20 +49,10 @@ namespace FeuerSoftware.TetraControl2Connect.Services
         private readonly ISitesService _sitesService;
         private readonly IOptionsMonitor<SeverityOptions> _severityOptions;
         private readonly IOptionsMonitor<SirenCalloutOptions> _sirenCalloutOptions;
-        private readonly Regex _keywordRegex = new(string.Empty);
-        private readonly Regex _factsRegex = new(string.Empty);
-        private readonly Regex _streetRegex = new(string.Empty);
-        private readonly Regex _houseNumberRegex = new(string.Empty);
-        private readonly Regex _cityRegex = new(string.Empty);
-        private readonly Regex _districtRegex = new(string.Empty);
-        private readonly Regex _zipCodeRegex = new(string.Empty);
-        private readonly Regex _longitudeRegex = new(string.Empty);
-        private readonly Regex _latitudeRegex = new(string.Empty);
-        private readonly Regex _reporterNameRegex = new(string.Empty);
-        private readonly Regex _reporterPhoneNumberRegex = new(string.Empty);
-        private readonly Regex _ricRegex = new(string.Empty);
-        private readonly Regex _numberRegex = new(string.Empty);
-        private readonly AsyncRetryPolicy _updateOperationRetryPolicy;
+        private volatile RegexCache _regexCache = EmptyRegexCache;
+        private volatile AsyncRetryPolicy _updateOperationRetryPolicy = null!;
+        private IDisposable? _patternOptionsChangeSubscription;
+        private IDisposable? _programOptionsChangeSubscription;
         private readonly ConcurrentDictionary<int, DateTime> _seenCalloutsByReference = new();
         private readonly ConcurrentDictionary<string, DateTime> _fallbackPublishes = new();
 
@@ -67,29 +79,60 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             _severityOptions = severityOptions ?? throw new ArgumentNullException(nameof(severityOptions));
             _sirenCalloutOptions = sirenCalloutOptions ?? throw new ArgumentNullException(nameof(sirenCalloutOptions));
 
+            BuildRegexes();
+            BuildRetryPolicy();
+
+            _patternOptionsChangeSubscription = _patternOptions.OnChange((_, _) =>
+            {
+                try { BuildRegexes(); }
+                catch (Exception ex) { _log.LogError(ex, "Failed to rebuild regex patterns from updated options."); }
+            });
+            _programOptionsChangeSubscription = _programOptions.OnChange((_, _) =>
+            {
+                try
+                {
+                    BuildRegexes();
+                    BuildRetryPolicy();
+                }
+                catch (Exception ex) { _log.LogError(ex, "Failed to rebuild from updated program options."); }
+            });
+        }
+
+        private void BuildRegexes()
+        {
             if (_programOptions.CurrentValue.AcceptSDSAsCalloutsWithPattern)
             {
-                _keywordRegex = new Regex(_patternOptions.CurrentValue.KeywordPattern, RegexOptions.Compiled);
-                _factsRegex = new Regex(_patternOptions.CurrentValue.FactsPattern, RegexOptions.Compiled);
-                _streetRegex = new Regex(_patternOptions.CurrentValue.StreetPattern, RegexOptions.Compiled);
-                _houseNumberRegex = new Regex(_patternOptions.CurrentValue.HouseNumberPattern, RegexOptions.Compiled);
-                _cityRegex = new Regex(_patternOptions.CurrentValue.CityPattern, RegexOptions.Compiled);
-                _districtRegex = new Regex(_patternOptions.CurrentValue.DistrictPattern, RegexOptions.Compiled);
-                _zipCodeRegex = new Regex(_patternOptions.CurrentValue.ZipCodePattern, RegexOptions.Compiled);
-                _longitudeRegex = new Regex(_patternOptions.CurrentValue.LongitudePattern, RegexOptions.Compiled);
-                _latitudeRegex = new Regex(_patternOptions.CurrentValue.LatitudePattern, RegexOptions.Compiled);
-                _reporterNameRegex = new Regex(_patternOptions.CurrentValue.ReporterNamePattern, RegexOptions.Compiled);
-                _reporterPhoneNumberRegex = new Regex(_patternOptions.CurrentValue.ReporterPhoneNumberPattern, RegexOptions.Compiled);
-                _ricRegex = new Regex(_patternOptions.CurrentValue.RicPattern, RegexOptions.Compiled);
-                _numberRegex = new Regex(_patternOptions.CurrentValue.NumberPattern, RegexOptions.Compiled);
+                _regexCache = new RegexCache(
+                    Keyword: new Regex(_patternOptions.CurrentValue.KeywordPattern, RegexOptions.Compiled),
+                    Facts: new Regex(_patternOptions.CurrentValue.FactsPattern, RegexOptions.Compiled),
+                    Street: new Regex(_patternOptions.CurrentValue.StreetPattern, RegexOptions.Compiled),
+                    HouseNumber: new Regex(_patternOptions.CurrentValue.HouseNumberPattern, RegexOptions.Compiled),
+                    City: new Regex(_patternOptions.CurrentValue.CityPattern, RegexOptions.Compiled),
+                    District: new Regex(_patternOptions.CurrentValue.DistrictPattern, RegexOptions.Compiled),
+                    ZipCode: new Regex(_patternOptions.CurrentValue.ZipCodePattern, RegexOptions.Compiled),
+                    Longitude: new Regex(_patternOptions.CurrentValue.LongitudePattern, RegexOptions.Compiled),
+                    Latitude: new Regex(_patternOptions.CurrentValue.LatitudePattern, RegexOptions.Compiled),
+                    ReporterName: new Regex(_patternOptions.CurrentValue.ReporterNamePattern, RegexOptions.Compiled),
+                    ReporterPhoneNumber: new Regex(_patternOptions.CurrentValue.ReporterPhoneNumberPattern, RegexOptions.Compiled),
+                    Ric: new Regex(_patternOptions.CurrentValue.RicPattern, RegexOptions.Compiled),
+                    Number: new Regex(_patternOptions.CurrentValue.NumberPattern, RegexOptions.Compiled));
             }
+        }
 
+        private void BuildRetryPolicy()
+        {
             _updateOperationRetryPolicy = Policy
                 .Handle<InvalidOperationException>()
                 .WaitAndRetryAsync(
                     _programOptions.CurrentValue.PollForActiveOperationBeforeFallbackMaxRetryCount,
                     retryCount => _programOptions.CurrentValue.PollForActiveOperationBeforeFallbackDelay,
                     (exception, sleepDuration, retryCount, context) => _log.LogInformation($"Operation is not present. Exception: '{exception.Message}' Retrying (Attempt '{retryCount}' after '{sleepDuration}')..."));
+        }
+
+        public void Dispose()
+        {
+            _patternOptionsChangeSubscription?.Dispose();
+            _programOptionsChangeSubscription?.Dispose();
         }
 
         public async Task HandleSds(TetraControlDto sds)
@@ -642,8 +685,10 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
         private OperationModel ResolveOperationWithPattern(string text)
         {
-            var longitude = _longitudeRegex.Match(text).Groups[1].Value.Trim();
-            var latitude = _latitudeRegex.Match(text).Groups[1].Value.Trim();
+            var cache = _regexCache; // snapshot for thread safety
+
+            var longitude = cache.Longitude.Match(text).Groups[1].Value.Trim();
+            var latitude = cache.Latitude.Match(text).Groups[1].Value.Trim();
 
             // Get the number separator for this culture and replace any others with it
             var separator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
@@ -662,8 +707,8 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 #pragma warning restore IDE0018 // Inline variable declaration
             var hasValidPosition = double.TryParse(longitude, out longitudeValue) && double.TryParse(latitude, out latitudeValue);
 
-            var reporterName = _reporterNameRegex.Match(text).Groups[1].Value.Trim();
-            var reporterPhoneNumber = _reporterPhoneNumberRegex.Match(text).Groups[1].Value.Trim();
+            var reporterName = cache.ReporterName.Match(text).Groups[1].Value.Trim();
+            var reporterPhoneNumber = cache.ReporterPhoneNumber.Match(text).Groups[1].Value.Trim();
             var hasValidReporter = !string.IsNullOrWhiteSpace(reporterName) || !string.IsNullOrWhiteSpace(reporterPhoneNumber);
 
             var additionalProperties = new List<OperationPropertyModel>();
@@ -688,11 +733,11 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
             var operation = new OperationModel()
             {
-                Number = _numberRegex.Match(text).Groups[1].Value.Trim(),
-                Keyword = _keywordRegex.Match(text).Groups[1].Value.Trim(),
+                Number = cache.Number.Match(text).Groups[1].Value.Trim(),
+                Keyword = cache.Keyword.Match(text).Groups[1].Value.Trim(),
                 Start = DateTime.Now,
-                Facts = _factsRegex.Match(text).Groups[1].Value.Trim(),
-                Ric = _ricRegex.Match(text).Groups[1].Value.Trim(),
+                Facts = cache.Facts.Match(text).Groups[1].Value.Trim(),
+                Ric = cache.Ric.Match(text).Groups[1].Value.Trim(),
                 Source = $"TetraControl2Connect {Constants.Version}",
                 Reporter = hasValidReporter ? new ReporterModel()
                 {
@@ -701,11 +746,11 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                 } : null,
                 Address = new AddressModel()
                 {
-                    City = _cityRegex.Match(text).Groups[1].Value.Trim(),
-                    Street = _streetRegex.Match(text).Groups[1].Value.Trim(),
-                    HouseNumber = _houseNumberRegex.Match(text).Groups[1].Value.Trim(),
-                    District = _districtRegex.Match(text).Groups[1].Value.Trim(),
-                    ZipCode = _zipCodeRegex.Match(text).Groups[1].Value.Trim(),
+                    City = cache.City.Match(text).Groups[1].Value.Trim(),
+                    Street = cache.Street.Match(text).Groups[1].Value.Trim(),
+                    HouseNumber = cache.HouseNumber.Match(text).Groups[1].Value.Trim(),
+                    District = cache.District.Match(text).Groups[1].Value.Trim(),
+                    ZipCode = cache.ZipCode.Match(text).Groups[1].Value.Trim(),
                 },
                 Position = hasValidPosition ? new PositionModel()
                 {
