@@ -173,9 +173,97 @@ jobs:
           name: tetracontrol2connect-${{ needs.version.outputs.release_version }}-${{ matrix.rid }}
           path: release/tetracontrol2connect-${{ needs.version.outputs.release_version }}-${{ matrix.rid }}.zip
 
+  build_simulator:
+    name: Build simulator (${{ matrix.rid }})
+    needs: version
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: ubuntu-latest
+            rid: linux-arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Publish simulator
+        shell: pwsh
+        run: |
+          $rid = '${{ matrix.rid }}'
+          $workspace = '${{ github.workspace }}'
+          $outDir = Join-Path $workspace (Join-Path 'publish-sim' $rid)
+          $ver = '${{ needs.version.outputs.release_version }}'
+          $commitShort = git rev-parse --short HEAD
+          Write-Host "Publishing simulator for $rid (ReleaseVersion=$ver)"
+          dotnet publish TetraControl2Connect.Simulator/TetraControl2Connect.Simulator.csproj `
+            -c Release `
+            -r $rid `
+            /p:PublishSingleFile=true `
+            /p:PublishTrimmed=false `
+            /p:SelfContained=true `
+            /p:Version=$ver `
+            /p:AssemblyVersion=$ver `
+            /p:FileVersion=$ver `
+            /p:InformationalVersion="$ver+$commitShort" `
+            -o $outDir
+
+      - name: Prepare simulator artifact
+        shell: pwsh
+        run: |
+          $workspace = '${{ github.workspace }}'
+          $rid = '${{ matrix.rid }}'
+          $publishDir = Join-Path $workspace (Join-Path 'publish-sim' $rid)
+          if (-Not (Test-Path $publishDir)) { Write-Error "Publish directory not found: $publishDir"; exit 1 }
+          $exeName = if ($rid -like 'win-*') { 'FeuerSoftware.TetraControl2Connect.Simulator.exe' } else { 'FeuerSoftware.TetraControl2Connect.Simulator' }
+          $exePath = Join-Path $publishDir $exeName
+          if (-Not (Test-Path $exePath)) { Write-Error "Expected executable not found: $exePath"; exit 1 }
+          $artifactDir = Join-Path $workspace ('artifact_sim_' + $rid)
+          if (Test-Path $artifactDir) { Remove-Item -Recurse -Force $artifactDir }
+          New-Item -ItemType Directory -Path $artifactDir | Out-Null
+          Copy-Item -Path (Join-Path $publishDir '*') -Destination $artifactDir -Recurse -Force
+          Copy-Item -Path (Join-Path $workspace 'LICENSE') -Destination $artifactDir -Force
+
+      - name: Create simulator ZIP
+        shell: pwsh
+        run: |
+          $workspace = '${{ github.workspace }}'
+          $rid = '${{ matrix.rid }}'
+          $artifactDir = Join-Path $workspace ('artifact_sim_' + $rid)
+          $version = '${{ needs.version.outputs.release_version }}'
+          $zipName = "tetracontrol2connect-simulator-$version-$rid.zip"
+          $releaseDir = Join-Path $workspace 'release'
+          if (-Not (Test-Path $releaseDir)) { New-Item -ItemType Directory -Path $releaseDir | Out-Null }
+          $zipPath = Join-Path $releaseDir $zipName
+          if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
+          Compress-Archive -Path (Join-Path $artifactDir '*') -DestinationPath $zipPath -Force
+
+      - name: Upload simulator artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tetracontrol2connect-simulator-${{ needs.version.outputs.release_version }}-${{ matrix.rid }}
+          path: release/tetracontrol2connect-simulator-${{ needs.version.outputs.release_version }}-${{ matrix.rid }}.zip
+
   integrity:
     name: Generate checksums
-    needs: [version, build_and_package]
+    needs: [version, build_and_package, build_simulator]
     runs-on: ubuntu-latest
     steps:
       - name: Download build artifacts
@@ -204,7 +292,7 @@ jobs:
 
   publish_release:
     name: Create GitHub Release
-    needs: [version, build_and_package, integrity]
+    needs: [version, build_and_package, build_simulator, integrity]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
