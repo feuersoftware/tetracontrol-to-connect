@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>FeuerSoftware.$(MSBuildProjectName)</AssemblyName>
     <RootNamespace>FeuerSoftware.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
-    <Version>2.9.1</Version>
+    <Version>3.0.0-preview</Version>
     <Authors>Moritz Jökel, Sven Donath, Jannik Rittwage, Andreas Lampe</Authors>
     <Company>Feuer Software GmbH</Company>
     <Product>TetraControl2Connect</Product>

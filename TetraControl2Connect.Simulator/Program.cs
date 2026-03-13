@@ -2,6 +2,32 @@ using FeuerSoftware.TetraControl2Connect.Simulator;
 
 var port = args.Length > 0 && int.TryParse(args[0], out var p) ? p : 8085;
 
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.WriteLine("╔══════════════════════════════════════════════════════════════╗");
+Console.WriteLine("║                        ⚠ WARNING ⚠                         ║");
+Console.WriteLine("║                                                              ║");
+Console.WriteLine("║  This simulator sends test data to TetraControl2Connect.     ║");
+Console.WriteLine("║  If the main application is connected to a REAL Connect      ║");
+Console.WriteLine("║  site, this test data WILL be pushed to your production      ║");
+Console.WriteLine("║  environment!                                                ║");
+Console.WriteLine("║                                                              ║");
+Console.WriteLine("║  Make sure TetraControl2Connect is either:                   ║");
+Console.WriteLine("║    • NOT running, or                                         ║");
+Console.WriteLine("║    • configured with a TEST site only                        ║");
+Console.WriteLine("║                                                              ║");
+Console.WriteLine("╚══════════════════════════════════════════════════════════════╝");
+Console.ResetColor();
+Console.Write("\nI confirm that no production Connect site will be affected [y/N]: ");
+
+var confirmation = Console.ReadLine();
+if (!string.Equals(confirmation?.Trim(), "y", StringComparison.OrdinalIgnoreCase))
+{
+    Console.WriteLine("Aborted.");
+    return 0;
+}
+
+Console.WriteLine();
+
 using var server = new WebSocketServer(port);
 using var cts = new CancellationTokenSource();
 

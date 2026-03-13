@@ -199,3 +199,21 @@ verarbeitet werden sollen. (Callouts für Sirenen beginnen mit einem Steuerzeich
 
 ## Version 2.9.1
 * Fehlerbehebung bzgl. Sirenen-Statuscode-Übersetzung nach TetraControl-Update
+
+## Version 3.0.0-preview
+* **Admin UI:** Neue webbasierte Admin-Oberfläche (Nuxt 3 SPA) unter `http://localhost:5050`
+  * Dashboard mit Übersicht aller Einstellungsbereiche
+  * Einrichtungsassistent für die Erstkonfiguration
+  * Editoren für alle 8 Konfigurationsabschnitte
+  * Live-Ansicht für Echtzeit-Nachrichten von TetraControl (SignalR)
+  * Backup-Verwaltung mit automatischen täglichen Sicherungen
+* **Datenbank:** Einstellungen werden nun in SQLite gespeichert (EF Core Migrations), nicht mehr in `appsettings.json`
+  * Automatischer Import aus bestehender `appsettings.json` beim Upgrade
+  * Standardwerte werden beim Erststart gesetzt
+* **Web API:** REST API für alle Einstellungen unter `/api/settings/` mit Swagger UI
+* **Upgrade auf .NET 10.0**
+* **Simulator:** TetraControl WebSocket-Simulator zum Testen ohne echte Hardware
+* **CI/CD:** GitHub Actions für CI (Build, Tests, Playwright E2E) und Release (Multi-Plattform)
+* **Pattern-Seite:** Integrierter Regex-Tester und KI-Assistent für Musterentwicklung
+* **Zweisprachige Dokumentation** (Deutsch/Englisch)
+* Erweiterte Testabdeckung (95+ Unit-Tests, Playwright E2E-Tests)
