@@ -42,6 +42,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 IgnoreAlarmWithoutSubnetAddresses = true,
                 AcceptCalloutsForSirens = false,
             });
+            programOptions.Setup(o => o.OnChange(It.IsAny<Action<ProgramOptions, string?>>())).Returns((IDisposable?)null);
 
             var statusOptions = new Mock<IOptionsMonitor<StatusOptions>>(MockBehavior.Strict);
             statusOptions.Setup(o => o.CurrentValue).Returns(new StatusOptions());
@@ -54,6 +55,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var patternOptions = new Mock<IOptionsMonitor<PatternOptions>>(MockBehavior.Strict);
             patternOptions.Setup(o => o.CurrentValue).Returns(new PatternOptions());
+            patternOptions.Setup(o => o.OnChange(It.IsAny<Action<PatternOptions, string?>>())).Returns((IDisposable?)null);
 
             var sitesService = new Mock<ISitesService>();
 
@@ -206,6 +208,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var patternOptions = new Mock<IOptionsMonitor<PatternOptions>>(MockBehavior.Strict);
             patternOptions.Setup(o => o.CurrentValue).Returns(new PatternOptions());
+            patternOptions.Setup(o => o.OnChange(It.IsAny<Action<PatternOptions, string?>>())).Returns((IDisposable?)null);
 
             var sitesService = new Mock<ISitesService>();
 
@@ -351,6 +354,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var patternOptions = new Mock<IOptionsMonitor<PatternOptions>>(MockBehavior.Strict);
             patternOptions.Setup(o => o.CurrentValue).Returns(new PatternOptions());
+            patternOptions.Setup(o => o.OnChange(It.IsAny<Action<PatternOptions, string?>>())).Returns((IDisposable?)null);
 
             var sitesService = new Mock<ISitesService>();
 
@@ -457,6 +461,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var patternOptions = new Mock<IOptionsMonitor<PatternOptions>>(MockBehavior.Strict);
             patternOptions.Setup(o => o.CurrentValue).Returns(new PatternOptions());
+            patternOptions.Setup(o => o.OnChange(It.IsAny<Action<PatternOptions, string?>>())).Returns((IDisposable?)null);
 
             var sitesService = new Mock<ISitesService>();
 
@@ -568,6 +573,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             var patternOptions = new Mock<IOptionsMonitor<PatternOptions>>(MockBehavior.Strict);
             patternOptions.Setup(o => o.CurrentValue).Returns(new PatternOptions());
+            patternOptions.Setup(o => o.OnChange(It.IsAny<Action<PatternOptions, string?>>())).Returns((IDisposable?)null);
 
             var sitesService = new Mock<ISitesService>();
 
@@ -697,6 +703,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                     }
                 ]
             });
+            patternOptions.Setup(o => o.OnChange(It.IsAny<Action<PatternOptions, string?>>())).Returns((IDisposable?)null);
 
             var sitesService = new Mock<ISitesService>();
 
