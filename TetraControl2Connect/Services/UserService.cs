@@ -11,13 +11,13 @@ namespace FeuerSoftware.TetraControl2Connect.Services
     public class UserService(
         ILogger<UserService> log,
         IConnectApiService connectApiService,
-        IOptions<ConnectOptions> connectOptions,
+        IOptionsMonitor<ConnectOptions> connectOptions,
         ISitesService sitesService) : IUserService
     {
         private readonly ILogger<UserService> _log = log ?? throw new ArgumentNullException(nameof(log));
         private readonly IConnectApiService _connectApiService = connectApiService ?? throw new ArgumentNullException(nameof(connectApiService));
         private readonly ISitesService _siteService = sitesService ?? throw new ArgumentNullException(nameof(sitesService));
-        private readonly ConnectOptions _connectOptions = connectOptions?.Value ?? throw new ArgumentNullException(nameof(connectOptions));
+        private readonly IOptionsMonitor<ConnectOptions> _connectOptions = connectOptions ?? throw new ArgumentNullException(nameof(connectOptions));
         private readonly HashSet<UserModel> _users = [];
         private readonly ConcurrentDictionary<string, List<string>> _userAccessTokens = new();
         private IDisposable? _refreshSubscription;
@@ -84,7 +84,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             _users.Clear();
             _userAccessTokens.Clear();
 
-            foreach (var site in _connectOptions.Sites)
+            foreach (var site in _connectOptions.CurrentValue.Sites)
             {
                 _log.LogInformation("Prepare users for Site '{SiteName}'.", site.Name);
 

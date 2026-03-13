@@ -15,15 +15,15 @@ namespace FeuerSoftware.TetraControl2Connect
     public sealed class Agent(
         ILogger<Agent> log,
         ITetraControlClient tcClient,
-        IOptions<ConnectOptions> connectOptions,
-        IOptions<ProgramOptions> programOptions,
-        IOptions<StatusOptions> statusOptions,
-        IOptions<SirenStatusOptions> sirenStatusOptions,
+        IOptionsMonitor<ConnectOptions> connectOptions,
+        IOptionsMonitor<ProgramOptions> programOptions,
+        IOptionsMonitor<StatusOptions> statusOptions,
+        IOptionsMonitor<SirenStatusOptions> sirenStatusOptions,
         IUserService userService,
         IVehicleService vehicleService,
         ISDSService sdsService,
-        IOptions<SeverityOptions> severityOptions,
-        IOptions<SirenCalloutOptions> sirenCalloutOptions,
+        IOptionsMonitor<SeverityOptions> severityOptions,
+        IOptionsMonitor<SirenCalloutOptions> sirenCalloutOptions,
         IHttpClientFactory httpClientFactory,
         ISirenService sirenService,
         ISitesService sitesService,
@@ -31,15 +31,15 @@ namespace FeuerSoftware.TetraControl2Connect
     {
         private readonly ILogger<Agent> _log = log ?? throw new ArgumentNullException(nameof(log));
         private readonly ITetraControlClient _tcClient = tcClient ?? throw new ArgumentNullException(nameof(tcClient));
-        private readonly SirenStatusOptions _sirenStatusOptions = sirenStatusOptions?.Value ?? throw new ArgumentNullException(nameof(sirenStatusOptions));
-        private readonly ConnectOptions _connectOptions = connectOptions?.Value ?? throw new ArgumentNullException(nameof(connectOptions));
-        private readonly ProgramOptions _programOptions = programOptions?.Value ?? throw new ArgumentNullException(nameof(programOptions));
-        private readonly StatusOptions _statusOptions = statusOptions?.Value ?? throw new ArgumentNullException(nameof(statusOptions));
+        private readonly IOptionsMonitor<SirenStatusOptions> _sirenStatusOptions = sirenStatusOptions ?? throw new ArgumentNullException(nameof(sirenStatusOptions));
+        private readonly IOptionsMonitor<ConnectOptions> _connectOptions = connectOptions ?? throw new ArgumentNullException(nameof(connectOptions));
+        private readonly IOptionsMonitor<ProgramOptions> _programOptions = programOptions ?? throw new ArgumentNullException(nameof(programOptions));
+        private readonly IOptionsMonitor<StatusOptions> _statusOptions = statusOptions ?? throw new ArgumentNullException(nameof(statusOptions));
         private readonly IUserService _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         private readonly IVehicleService _vehicleService = vehicleService ?? throw new ArgumentNullException(nameof(vehicleService));
         private readonly ISDSService _sdsService = sdsService ?? throw new ArgumentNullException(nameof(sdsService));
-        private readonly SeverityOptions _severityOptions = severityOptions?.Value ?? throw new ArgumentNullException(nameof(severityOptions));
-        private readonly SirenCalloutOptions _sirenCalloutOptions = sirenCalloutOptions?.Value ?? throw new ArgumentNullException(nameof(sirenCalloutOptions));
+        private readonly IOptionsMonitor<SeverityOptions> _severityOptions = severityOptions ?? throw new ArgumentNullException(nameof(severityOptions));
+        private readonly IOptionsMonitor<SirenCalloutOptions> _sirenCalloutOptions = sirenCalloutOptions ?? throw new ArgumentNullException(nameof(sirenCalloutOptions));
         private readonly IHttpClientFactory _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         private readonly ISirenService _sirenService = sirenService ?? throw new ArgumentNullException(nameof(sirenService));
         private readonly ISitesService _sitesService = sitesService ?? throw new ArgumentNullException(nameof(sitesService));
@@ -65,12 +65,12 @@ namespace FeuerSoftware.TetraControl2Connect
         {
             _log.LogInformation("Starting agent...");
             _log.LogInformation($"Version: {typeof(Program).Assembly.GetName().Version}");
-            _log.LogInformation("Using following ConnectOptions from appsettings.json: {@Options}", _connectOptions);
-            _log.LogInformation("Using following ProgramOptions from appsettings.json: {@Options}", _programOptions);
-            _log.LogInformation("Using following StatusOptions from appsettings.json: {@Options}", _statusOptions);
-            _log.LogInformation("Using following SeverityOptions from appsettings.json: {@Options}", _severityOptions);
-            _log.LogInformation("Using following SirenCalloutOptions from appsettings.json: {@Options}", _sirenCalloutOptions);
-            _log.LogInformation("Using following SirenStatusOptions from appsettings.json: {@Options}", _sirenStatusOptions);
+            _log.LogInformation("Using following ConnectOptions from appsettings.json: {@Options}", _connectOptions.CurrentValue);
+            _log.LogInformation("Using following ProgramOptions from appsettings.json: {@Options}", _programOptions.CurrentValue);
+            _log.LogInformation("Using following StatusOptions from appsettings.json: {@Options}", _statusOptions.CurrentValue);
+            _log.LogInformation("Using following SeverityOptions from appsettings.json: {@Options}", _severityOptions.CurrentValue);
+            _log.LogInformation("Using following SirenCalloutOptions from appsettings.json: {@Options}", _sirenCalloutOptions.CurrentValue);
+            _log.LogInformation("Using following SirenStatusOptions from appsettings.json: {@Options}", _sirenStatusOptions.CurrentValue);
 
             // Connect to TetraControl first — this is independent of site configuration
             try
@@ -111,12 +111,12 @@ namespace FeuerSoftware.TetraControl2Connect
             await _sitesService.Initialize();
             await _sirenService.Initialize();
 
-            if (_programOptions.SendVehiclePositions || _programOptions.SendVehicleStatus)
+            if (_programOptions.CurrentValue.SendVehiclePositions || _programOptions.CurrentValue.SendVehicleStatus)
             {
                 await _vehicleService.Initialize();
             }
 
-            if (_programOptions.SendUserAvailability || _programOptions.SendUserOperationStatus || _programOptions.SendAlarms)
+            if (_programOptions.CurrentValue.SendUserAvailability || _programOptions.CurrentValue.SendUserOperationStatus || _programOptions.CurrentValue.SendAlarms)
             {
                 await _userService.Initialize();
             }
@@ -124,7 +124,7 @@ namespace FeuerSoftware.TetraControl2Connect
 
         private async Task InitializeHeartbeat()
         {
-            if (!_programOptions.IsHeartbeatConfigured())
+            if (!_programOptions.CurrentValue.IsHeartbeatConfigured())
             {
                 _log.LogWarning("Heartbeat is not configured.");
 
@@ -139,7 +139,7 @@ namespace FeuerSoftware.TetraControl2Connect
                 await httpClient.GetAsync(string.Empty);
             }
 
-            _heartbeatSubscription = Observable.Interval(_programOptions.HeartbeatInterval!.Value)
+            _heartbeatSubscription = Observable.Interval(_programOptions.CurrentValue.HeartbeatInterval!.Value)
                 .CombineLatest(_tcClient.IsConnected.DistinctUntilChanged())
                 .Where(x => x.Second)
                 .SubscribeAsyncSafe(async _ =>
@@ -183,9 +183,9 @@ namespace FeuerSoftware.TetraControl2Connect
                         }
                     });
 
-                    if (!_programOptions.SendAlarms && !_programOptions.SendUserAvailability && !_programOptions.SendUserOperationStatus)
+                    if (!_programOptions.CurrentValue.SendAlarms && !_programOptions.CurrentValue.SendUserAvailability && !_programOptions.CurrentValue.SendUserOperationStatus)
                     {
-                        _log.LogDebug($"Ignoring SDS because {nameof(_programOptions.SendAlarms)}, {nameof(_programOptions.SendUserAvailability)} and {nameof(_programOptions.SendUserOperationStatus)} are disabled in program options.");
+                        _log.LogDebug($"Ignoring SDS because {nameof(ProgramOptions.SendAlarms)}, {nameof(ProgramOptions.SendUserAvailability)} and {nameof(ProgramOptions.SendUserOperationStatus)} are disabled in program options.");
 
                         return;
                     }
@@ -197,7 +197,7 @@ namespace FeuerSoftware.TetraControl2Connect
                         try
                         {
                             // SDS comes from registered siren (Sirene24 sends SDS, not Status)
-                            if (_connectOptions.Sites.SelectMany(s => s.Sirens.Select(si => si.Issi)).Contains(dto.SourceSSI))
+                            if (_connectOptions.CurrentValue.Sites.SelectMany(s => s.Sirens.Select(si => si.Issi)).Contains(dto.SourceSSI))
                             {
                                 _log.LogDebug("SDS comes from siren, so its probably a siren status...");
                                 await _sirenService.HandleSirenStatuscode(dto);
@@ -250,9 +250,9 @@ namespace FeuerSoftware.TetraControl2Connect
                         }
                     });
 
-                    if (!_programOptions.SendVehiclePositions)
+                    if (!_programOptions.CurrentValue.SendVehiclePositions)
                     {
-                        _log.LogDebug($"Ignoring vehicle positions because {nameof(_programOptions.SendVehiclePositions)} is disabled in program options.");
+                        _log.LogDebug($"Ignoring vehicle positions because {nameof(ProgramOptions.SendVehiclePositions)} is disabled in program options.");
 
                         return;
                     }
@@ -317,9 +317,9 @@ namespace FeuerSoftware.TetraControl2Connect
 
                     if (type == StatusType.Vehicle)
                     {
-                        if (!_programOptions.SendVehicleStatus)
+                        if (!_programOptions.CurrentValue.SendVehicleStatus)
                         {
-                            _log.LogDebug($"Ignoring vehicle status because {nameof(_programOptions.SendVehicleStatus)} is disabled in program options.");
+                            _log.LogDebug($"Ignoring vehicle status because {nameof(ProgramOptions.SendVehicleStatus)} is disabled in program options.");
 
                             return;
                         }

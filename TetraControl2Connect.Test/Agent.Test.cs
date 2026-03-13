@@ -35,20 +35,20 @@ namespace FeuerSoftware.TetraControl2Connect.Test
             tcClient.Setup(c => c.PositionReceived).Returns(positionSubject.AsObservable());
             tcClient.Setup(c => c.SDSReceived).Returns(sdsSubject.AsObservable());
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>(MockBehavior.Strict);
-            connectOptions.Setup(o => o.Value).Returns(new ConnectOptions());
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>(MockBehavior.Strict);
+            connectOptions.Setup(o => o.CurrentValue).Returns(new ConnectOptions());
 
-            var programOptions = new Mock<IOptions<ProgramOptions>>(MockBehavior.Strict);
-            programOptions.Setup(o => o.Value).Returns(new ProgramOptions());
+            var programOptions = new Mock<IOptionsMonitor<ProgramOptions>>(MockBehavior.Strict);
+            programOptions.Setup(o => o.CurrentValue).Returns(new ProgramOptions());
 
-            var statusOptionsOptions = new Mock<IOptions<StatusOptions>>(MockBehavior.Strict);
-            statusOptionsOptions.Setup(o => o.Value).Returns(new StatusOptions());
+            var statusOptionsOptions = new Mock<IOptionsMonitor<StatusOptions>>(MockBehavior.Strict);
+            statusOptionsOptions.Setup(o => o.CurrentValue).Returns(new StatusOptions());
 
-            var severityOptions = new Mock<IOptions<SeverityOptions>>(MockBehavior.Strict);
-            severityOptions.Setup(o => o.Value).Returns(new SeverityOptions());
+            var severityOptions = new Mock<IOptionsMonitor<SeverityOptions>>(MockBehavior.Strict);
+            severityOptions.Setup(o => o.CurrentValue).Returns(new SeverityOptions());
 
-            var sirenCalloutOptions = new Mock<IOptions<SirenCalloutOptions>>(MockBehavior.Strict);
-            sirenCalloutOptions.Setup(o => o.Value).Returns(new SirenCalloutOptions());
+            var sirenCalloutOptions = new Mock<IOptionsMonitor<SirenCalloutOptions>>(MockBehavior.Strict);
+            sirenCalloutOptions.Setup(o => o.CurrentValue).Returns(new SirenCalloutOptions());
 
             var userService = new Mock<IUserService>(MockBehavior.Strict);
             userService.Setup(s => s.Initialize()).Returns(Task.CompletedTask);
@@ -71,8 +71,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test
 
             var sirenService = new Mock<ISirenService>(MockBehavior.Strict);
             sirenService.Setup(s => s.Initialize()).Returns(Task.CompletedTask);
-            var sirenStatusOptions = new Mock<IOptions<SirenStatusOptions>>();
-            sirenStatusOptions.Setup(o => o.Value).Returns(new SirenStatusOptions());
+            var sirenStatusOptions = new Mock<IOptionsMonitor<SirenStatusOptions>>();
+            sirenStatusOptions.Setup(o => o.CurrentValue).Returns(new SirenStatusOptions());
 
             var sitesService = new Mock<ISitesService>(MockBehavior.Strict);
             sitesService.Setup(s => s.Initialize()).Returns(Task.CompletedTask);

@@ -20,8 +20,8 @@ const steps: StepperItem[] = [
 // TetraControl settings
 const tetraControl = ref({
   id: 1,
-  webSocketHost: 'localhost',
-  webSocketPort: 8085,
+  tetraControlHost: 'localhost',
+  tetraControlPort: 8085,
   tetraControlUsername: 'Connect',
   tetraControlPassword: 'Connect'
 })
@@ -36,18 +36,29 @@ const site = ref({
   sirens: [] as any[]
 })
 
-// Program options
+// Program options (all entity fields with sensible defaults)
 const programOptions = ref({
   id: 1,
-  sendVehiclePosition: true,
   sendVehicleStatus: true,
+  sendVehiclePositions: true,
+  sendUserOperationStatus: true,
   sendUserAvailability: true,
   sendAlarms: true,
-  openBrowserOnStartup: true,
+  updateExistingOperations: false,
+  userAvailabilityLifetimeDays: 30,
   webSocketReconnectTimeoutMinutes: 5,
-  heartbeatIntervalMinutes: 15,
-  positionCacheEnabled: true,
-  suppressedVehicleStatusCodes: ''
+  pollForActiveOperationBeforeFallbackMaxRetryCount: 3,
+  pollForActiveOperationBeforeFallbackDelay: '00:00:05',
+  heartbeatEndpointUrl: '',
+  heartbeatInterval: null as string | null,
+  ignoreStatus5: false,
+  ignoreStatus0: false,
+  ignoreStatus9: false,
+  addPropertyForAlarmTexts: false,
+  useFullyQualifiedSubnetAddressForConnect: false,
+  ignoreAlarmWithoutSubnetAddresses: false,
+  acceptCalloutsForSirens: false,
+  acceptSDSAsCalloutsWithPattern: false
 })
 
 async function saveAll() {
@@ -149,10 +160,10 @@ async function saveAll() {
                 <div class="space-y-4">
                   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <UFormField label="Host" description="IP-Adresse oder Hostname des TetraControl-Servers" class="sm:col-span-2">
-                      <UInput v-model="tetraControl.webSocketHost" placeholder="z.B. 192.168.1.100" class="w-full" />
+                      <UInput v-model="tetraControl.tetraControlHost" placeholder="z.B. 192.168.1.100" class="w-full" />
                     </UFormField>
                     <UFormField label="Port" description="Standard: 8085">
-                      <UInput v-model.number="tetraControl.webSocketPort" type="number" class="w-full" />
+                      <UInput v-model.number="tetraControl.tetraControlPort" type="number" class="w-full" />
                     </UFormField>
                   </div>
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -172,7 +183,7 @@ async function saveAll() {
                     label="Weiter"
                     icon="i-lucide-arrow-right"
                     trailing
-                    :disabled="!tetraControl.webSocketHost || tetraControl.webSocketPort <= 0"
+                    :disabled="!tetraControl.tetraControlHost || tetraControl.tetraControlPort <= 0"
                     @click="stepper?.next()"
                   />
                 </div>
@@ -241,7 +252,7 @@ async function saveAll() {
                         <p class="text-sm font-medium">Fahrzeugpositionen</p>
                         <p class="text-xs text-muted">GPS-Positionen der Fahrzeuge</p>
                       </div>
-                      <USwitch v-model="programOptions.sendVehiclePosition" />
+                      <USwitch v-model="programOptions.sendVehiclePositions" />
                     </div>
                     <div class="flex items-center justify-between py-2 border-b border-default">
                       <div>
@@ -256,6 +267,13 @@ async function saveAll() {
                         <p class="text-xs text-muted">Verfügbarkeitsstatus der Einsatzkräfte</p>
                       </div>
                       <USwitch v-model="programOptions.sendUserAvailability" />
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-default">
+                      <div>
+                        <p class="text-sm font-medium">Einsatzstatus</p>
+                        <p class="text-xs text-muted">Benutzer-Einsatzstatus übertragen</p>
+                      </div>
+                      <USwitch v-model="programOptions.sendUserOperationStatus" />
                     </div>
                     <div class="flex items-center justify-between py-2">
                       <div>
@@ -305,7 +323,7 @@ async function saveAll() {
                     </template>
                     <dl class="grid grid-cols-2 gap-2 text-sm">
                       <dt class="text-muted">Host</dt>
-                      <dd>{{ tetraControl.webSocketHost }}:{{ tetraControl.webSocketPort }}</dd>
+                      <dd>{{ tetraControl.tetraControlHost }}:{{ tetraControl.tetraControlPort }}</dd>
                       <dt class="text-muted">Benutzer</dt>
                       <dd>{{ tetraControl.tetraControlUsername }}</dd>
                     </dl>
@@ -334,12 +352,13 @@ async function saveAll() {
                       </div>
                     </template>
                     <div class="flex flex-wrap gap-2">
-                      <UBadge v-if="programOptions.sendVehiclePosition" variant="subtle" color="success">Fahrzeugpositionen</UBadge>
+                      <UBadge v-if="programOptions.sendVehiclePositions" variant="subtle" color="success">Fahrzeugpositionen</UBadge>
                       <UBadge v-if="programOptions.sendVehicleStatus" variant="subtle" color="success">Fahrzeugstatus</UBadge>
                       <UBadge v-if="programOptions.sendUserAvailability" variant="subtle" color="success">Verfügbarkeit</UBadge>
+                      <UBadge v-if="programOptions.sendUserOperationStatus" variant="subtle" color="success">Einsatzstatus</UBadge>
                       <UBadge v-if="programOptions.sendAlarms" variant="subtle" color="success">Alarme</UBadge>
                       <UBadge
-                        v-if="!programOptions.sendVehiclePosition && !programOptions.sendVehicleStatus && !programOptions.sendUserAvailability && !programOptions.sendAlarms"
+                        v-if="!programOptions.sendVehiclePositions && !programOptions.sendVehicleStatus && !programOptions.sendUserAvailability && !programOptions.sendUserOperationStatus && !programOptions.sendAlarms"
                         variant="subtle"
                         color="warning"
                       >

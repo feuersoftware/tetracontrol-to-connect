@@ -1,5 +1,6 @@
 using FeuerSoftware.TetraControl2Connect.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace FeuerSoftware.TetraControl2Connect.Endpoints;
 
@@ -79,7 +80,20 @@ public static class SettingsEndpoints
         group.MapPost("/import", async (AppDbContext db, IConfiguration configuration, ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger<AppDbContext>();
+
+            // Safety net: back up current settings before the import wipes the DB
+            var hasData = await db.ProgramSettings.AnyAsync()
+                       || await db.TetraControlSettings.AnyAsync()
+                       || await db.Sites.AnyAsync();
+
+            if (hasData)
+            {
+                await BackupEndpoints.CreateBackupAsync(db, "Automatische Sicherung vor Import");
+                logger.LogInformation("Created automatic backup before importing settings from appsettings.json.");
+            }
+
             await DatabaseConfigurationProvider.ImportFromConfiguration(db, configuration, logger);
+            ((IConfigurationRoot)configuration).Reload();
             return Results.Ok(new { message = "Settings imported from appsettings.json." });
         })
         .WithName("ImportSettings");
@@ -104,13 +118,14 @@ public static class SettingsEndpoints
             return Results.Ok(entity ?? new ProgramSettingsEntity { Id = 1 });
         }).WithName("GetProgramSettings");
 
-        group.MapPut("/program", async (ProgramSettingsEntity dto, AppDbContext db) =>
+        group.MapPut("/program", async (ProgramSettingsEntity dto, AppDbContext db, IConfiguration configuration) =>
         {
             var entity = await db.ProgramSettings.FindAsync(1);
             if (entity is null)
             {
                 dto.Id = 1;
                 db.ProgramSettings.Add(dto);
+                entity = dto;
             }
             else
             {
@@ -136,6 +151,7 @@ public static class SettingsEndpoints
                 entity.AcceptSDSAsCalloutsWithPattern = dto.AcceptSDSAsCalloutsWithPattern;
             }
             await db.SaveChangesAsync();
+            ((IConfigurationRoot)configuration).Reload();
             return Results.Ok(entity);
         }).WithName("UpdateProgramSettings");
     }
@@ -148,13 +164,14 @@ public static class SettingsEndpoints
             return Results.Ok(entity ?? new TetraControlSettingsEntity { Id = 1 });
         }).WithName("GetTetraControlSettings");
 
-        group.MapPut("/tetracontrol", async (TetraControlSettingsEntity dto, AppDbContext db) =>
+        group.MapPut("/tetracontrol", async (TetraControlSettingsEntity dto, AppDbContext db, IConfiguration configuration) =>
         {
             var entity = await db.TetraControlSettings.FindAsync(1);
             if (entity is null)
             {
                 dto.Id = 1;
                 db.TetraControlSettings.Add(dto);
+                entity = dto;
             }
             else
             {
@@ -164,6 +181,7 @@ public static class SettingsEndpoints
                 entity.TetraControlPassword = dto.TetraControlPassword;
             }
             await db.SaveChangesAsync();
+            ((IConfigurationRoot)configuration).Reload();
             return Results.Ok(entity);
         }).WithName("UpdateTetraControlSettings");
     }
@@ -176,13 +194,14 @@ public static class SettingsEndpoints
             return Results.Ok(entity ?? new StatusSettingsEntity { Id = 1 });
         }).WithName("GetStatusSettings");
 
-        group.MapPut("/status", async (StatusSettingsEntity dto, AppDbContext db) =>
+        group.MapPut("/status", async (StatusSettingsEntity dto, AppDbContext db, IConfiguration configuration) =>
         {
             var entity = await db.StatusSettings.FindAsync(1);
             if (entity is null)
             {
                 dto.Id = 1;
                 db.StatusSettings.Add(dto);
+                entity = dto;
             }
             else
             {
@@ -194,6 +213,7 @@ public static class SettingsEndpoints
                 entity.ComingLaterStatus = dto.ComingLaterStatus;
             }
             await db.SaveChangesAsync();
+            ((IConfigurationRoot)configuration).Reload();
             return Results.Ok(entity);
         }).WithName("UpdateStatusSettings");
     }
@@ -208,7 +228,7 @@ public static class SettingsEndpoints
             return Results.Ok(entity ?? new PatternSettingsEntity { Id = 1 });
         }).WithName("GetPatternSettings");
 
-        group.MapPut("/pattern", async (PatternSettingsEntity dto, AppDbContext db) =>
+        group.MapPut("/pattern", async (PatternSettingsEntity dto, AppDbContext db, IConfiguration configuration) =>
         {
             var entity = await db.PatternSettings
                 .Include(p => p.AdditionalProperties)
@@ -245,6 +265,7 @@ public static class SettingsEndpoints
                     }).ToList();
             }
             await db.SaveChangesAsync();
+            ((IConfigurationRoot)configuration).Reload();
             var result = await db.PatternSettings
                 .Include(p => p.AdditionalProperties)
                 .FirstOrDefaultAsync(p => p.Id == 1);
@@ -267,7 +288,7 @@ public static class SettingsEndpoints
             });
         }).WithName("GetSeveritySettings");
 
-        group.MapPut("/severity", async (SeveritySettingsDto dto, AppDbContext db) =>
+        group.MapPut("/severity", async (SeveritySettingsDto dto, AppDbContext db, IConfiguration configuration) =>
         {
             var entity = await db.SeveritySettings
                 .Include(s => s.SeverityTranslations)
@@ -290,6 +311,7 @@ public static class SettingsEndpoints
                 }).ToList();
 
             await db.SaveChangesAsync();
+            ((IConfigurationRoot)configuration).Reload();
             return Results.Ok(new
             {
                 entity.UseServerityTranslationAsKeyword,
@@ -313,7 +335,7 @@ public static class SettingsEndpoints
             });
         }).WithName("GetSirenCalloutSettings");
 
-        group.MapPut("/siren-callout", async (SirenCalloutSettingsDto dto, AppDbContext db) =>
+        group.MapPut("/siren-callout", async (SirenCalloutSettingsDto dto, AppDbContext db, IConfiguration configuration) =>
         {
             var entity = await db.SirenCalloutSettings
                 .Include(s => s.SirenCodeTranslations)
@@ -336,6 +358,7 @@ public static class SettingsEndpoints
                 }).ToList();
 
             await db.SaveChangesAsync();
+            ((IConfigurationRoot)configuration).Reload();
             return Results.Ok(new
             {
                 entity.UseSirenCodeTranslationAsKeyword,
@@ -358,7 +381,7 @@ public static class SettingsEndpoints
             });
         }).WithName("GetSirenStatusSettings");
 
-        group.MapPut("/siren-status", async (SirenStatusSettingsDto dto, AppDbContext db) =>
+        group.MapPut("/siren-status", async (SirenStatusSettingsDto dto, AppDbContext db, IConfiguration configuration) =>
         {
             var entity = await db.SirenStatusSettings
                 .Include(s => s.FailureTranslations)
@@ -380,6 +403,7 @@ public static class SettingsEndpoints
                 }).ToList();
 
             await db.SaveChangesAsync();
+            ((IConfigurationRoot)configuration).Reload();
             return Results.Ok(new
             {
                 FailureTranslations = entity.FailureTranslations.ToDictionary(t => t.Code, t => t.Translation),
@@ -399,7 +423,7 @@ public static class SettingsEndpoints
             return Results.Ok(new { Sites = sites });
         }).WithName("GetConnectSettings");
 
-        group.MapPut("/connect", async (ConnectSettingsDto dto, AppDbContext db) =>
+        group.MapPut("/connect", async (ConnectSettingsDto dto, AppDbContext db, IConfiguration configuration) =>
         {
             // Remove all existing sites (cascade deletes children)
             db.Sites.RemoveRange(db.Sites);
@@ -429,6 +453,7 @@ public static class SettingsEndpoints
             }
 
             await db.SaveChangesAsync();
+            ((IConfigurationRoot)configuration).Reload();
 
             var sites = await db.Sites
                 .Include(s => s.SubnetAddresses)

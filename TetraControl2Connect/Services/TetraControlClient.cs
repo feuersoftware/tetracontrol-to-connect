@@ -14,8 +14,8 @@ namespace FeuerSoftware.TetraControl2Connect.Services
     public class TetraControlClient : IDisposable, ITetraControlClient
     {
         private readonly ILogger<TetraControlClient> _log;
-        private readonly TetraControlOptions _tetraControlOptions;
-        private readonly ProgramOptions _programOptions;
+        private readonly IOptionsMonitor<TetraControlOptions> _tetraControlOptions;
+        private readonly IOptionsMonitor<ProgramOptions> _programOptions;
         private readonly WebsocketClient _wsClient;
         private readonly Subject<TetraControlDto> _statusSubject = new();
         private readonly Subject<TetraControlDto> _positionSubject = new();
@@ -28,12 +28,12 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
         public TetraControlClient(
             ILogger<TetraControlClient> log,
-            IOptions<TetraControlOptions> tetraControlOptions,
-            IOptions<ProgramOptions> programOptions)
+            IOptionsMonitor<TetraControlOptions> tetraControlOptions,
+            IOptionsMonitor<ProgramOptions> programOptions)
         {
             _log = log ?? throw new ArgumentNullException(nameof(log));
-            _tetraControlOptions = tetraControlOptions?.Value ?? throw new ArgumentNullException(nameof(tetraControlOptions));
-            _programOptions = programOptions?.Value ?? throw new ArgumentNullException(nameof(programOptions));
+            _tetraControlOptions = tetraControlOptions ?? throw new ArgumentNullException(nameof(tetraControlOptions));
+            _programOptions = programOptions ?? throw new ArgumentNullException(nameof(programOptions));
 
             var factory = new Func<ClientWebSocket>(() => new ClientWebSocket
             {
@@ -41,14 +41,14 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                 {
                     KeepAliveInterval = TimeSpan.FromSeconds(30),
                     Credentials = new NetworkCredential(
-                        userName: _tetraControlOptions.TetraControlUsername,
-                        password: _tetraControlOptions.TetraControlPassword),
+                        userName: _tetraControlOptions.CurrentValue.TetraControlUsername,
+                        password: _tetraControlOptions.CurrentValue.TetraControlPassword),
                 }
             });
 
-            _wsClient = new(_tetraControlOptions.WebSocketUri, factory)
+            _wsClient = new(_tetraControlOptions.CurrentValue.WebSocketUri, factory)
             {
-                ReconnectTimeout = TimeSpan.FromMinutes(_programOptions.WebSocketReconnectTimeoutMinutes),
+                ReconnectTimeout = TimeSpan.FromMinutes(_programOptions.CurrentValue.WebSocketReconnectTimeoutMinutes),
                 IsReconnectionEnabled = true
             };
         }
@@ -65,7 +65,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
         public async Task Start()
         {
-            _log.LogInformation("Connecting to TetraControl WebSocket at {Uri}...", _tetraControlOptions.WebSocketUri);
+            _log.LogInformation("Connecting to TetraControl WebSocket at {Uri}...", _tetraControlOptions.CurrentValue.WebSocketUri);
 
             try
             {
@@ -73,18 +73,18 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             }
             catch (Exception ex)
             {
-                _log.LogError(ex, "WebSocket connection to {Uri} failed.", _tetraControlOptions.WebSocketUri);
+                _log.LogError(ex, "WebSocket connection to {Uri} failed.", _tetraControlOptions.CurrentValue.WebSocketUri);
                 _connectionSubject.OnNext(false);
                 return;
             }
 
             if (_wsClient.IsRunning)
             {
-                _log.LogInformation("✓ Connected to TetraControl at {Uri}", _tetraControlOptions.WebSocketUri);
+                _log.LogInformation("✓ Connected to TetraControl at {Uri}", _tetraControlOptions.CurrentValue.WebSocketUri);
             }
             else
             {
-                _log.LogError("✗ Could not connect to TetraControl at {Uri}. Is the server running?", _tetraControlOptions.WebSocketUri);
+                _log.LogError("✗ Could not connect to TetraControl at {Uri}. Is the server running?", _tetraControlOptions.CurrentValue.WebSocketUri);
             }
 
             _connectionSubject.OnNext(_wsClient.IsRunning);

@@ -22,21 +22,21 @@ namespace FeuerSoftware.TetraControl2Connect.Services
         private readonly ILogger<SirenService> _log;
         private readonly Serilog.ILogger _sirenLog;
         private readonly IConnectApiService _connectApiService;
-        private readonly ConnectOptions _connectOptions;
-        private readonly SirenStatusOptions _sirenStatusOptions;
+        private readonly IOptionsMonitor<ConnectOptions> _connectOptions;
+        private readonly IOptionsMonitor<SirenStatusOptions> _sirenStatusOptions;
         private Dictionary<string, DateTime> _sirenHeartbeats = [];
         private readonly IDisposable? _sirenWatchdogSubscription;
 
         public SirenService(ILogger<SirenService> log,
         IConnectApiService connectApiService,
-        IOptions<ConnectOptions> connectOptions,
-        IOptions<SirenStatusOptions> sirenStatusOptions,
+        IOptionsMonitor<ConnectOptions> connectOptions,
+        IOptionsMonitor<SirenStatusOptions> sirenStatusOptions,
         Serilog.ILogger sirenLog)
         {
             _log = log ?? throw new ArgumentNullException(nameof(log));
             _connectApiService = connectApiService ?? throw new ArgumentNullException(nameof(connectApiService));
-            _connectOptions = connectOptions?.Value ?? throw new ArgumentNullException(nameof(connectOptions));
-            _sirenStatusOptions = sirenStatusOptions?.Value ?? throw new ArgumentNullException(nameof(sirenStatusOptions));
+            _connectOptions = connectOptions ?? throw new ArgumentNullException(nameof(connectOptions));
+            _sirenStatusOptions = sirenStatusOptions ?? throw new ArgumentNullException(nameof(sirenStatusOptions));
             _sirenLog = sirenLog ?? throw new ArgumentNullException(nameof(sirenLog));
 
             _sirenWatchdogSubscription = Observable.Interval(TimeSpan.FromMinutes(5)).SubscribeAsyncSafe(async _ =>
@@ -56,7 +56,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
                     _log.LogInformation("Siren {SirenName} (ISSI {Issi}) missed its heartbeat – issue detected! Last heartbeat was {LastHeartbeat}", siren.Name, siren.Issi, lastHeartbeat);
 
-                    var sirenSites = _connectOptions.Sites
+                    var sirenSites = _connectOptions.CurrentValue.Sites
                         .Where(site => site.Sirens.Any(siren => siren.Issi == siren.Issi));
 
                     foreach (var site in sirenSites)
@@ -72,7 +72,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
         private List<Siren> GetConfiguredSirensWithHeartbeatInterval()
         {
-            return [.. _connectOptions.Sites
+            return [.. _connectOptions.CurrentValue.Sites
                 .SelectMany(s => s.Sirens)
                 .Where(s => s.ExpectedHeartbeatInterval != null)
                 .DistinctBy(s => s.Issi)];
@@ -105,7 +105,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
         public async Task HandleSirenStatuscode(TetraControlDto dto)
         {
-            var malfunctionTranslationKey = _sirenStatusOptions.FailureTranslations.Keys
+            var malfunctionTranslationKey = _sirenStatusOptions.CurrentValue.FailureTranslations.Keys
                 .Where(k => dto.Text.Contains(k, StringComparison.InvariantCultureIgnoreCase) || dto.StatusCode.Equals(k, StringComparison.InvariantCultureIgnoreCase))
                 .FirstOrDefault();
 
@@ -137,10 +137,10 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                 return;
             }
 
-            var translation = _sirenStatusOptions.FailureTranslations[malfunctionTranslationKey];
+            var translation = _sirenStatusOptions.CurrentValue.FailureTranslations[malfunctionTranslationKey];
             _log.LogInformation("Siren status message is malfunction for translation {Translation}.", translation);
 
-            var sirenSites = _connectOptions.Sites.Where(site => site.Sirens.Any(siren => siren.Issi == dto.SourceSSI));
+            var sirenSites = _connectOptions.CurrentValue.Sites.Where(site => site.Sirens.Any(siren => siren.Issi == dto.SourceSSI));
 
             _log.LogDebug("Sites for siren status are: {@Sites}", sirenSites);
 
@@ -155,7 +155,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
         private async Task CheckAndResolveAllDefectReportsForSiren(string issi)
         {
-            var sirenSites = _connectOptions.Sites.Where(site => site.Sirens.Any(siren => siren.Issi == issi));
+            var sirenSites = _connectOptions.CurrentValue.Sites.Where(site => site.Sirens.Any(siren => siren.Issi == issi));
 
             foreach (var site in sirenSites)
             {

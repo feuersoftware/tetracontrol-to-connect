@@ -60,8 +60,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(new ConnectOptions
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(new ConnectOptions
             {
                 Sites = [
                     new()
@@ -73,8 +73,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 ]
             });
 
-            var sirenStatusOptions = new Mock<IOptions<SirenStatusOptions>>();
-            sirenStatusOptions.Setup(o => o.Value).Returns(new SirenStatusOptions()
+            var sirenStatusOptions = new Mock<IOptionsMonitor<SirenStatusOptions>>();
+            sirenStatusOptions.Setup(o => o.CurrentValue).Returns(new SirenStatusOptions()
             {
                 FailureTranslations = new Dictionary<string, string>()
                 {
@@ -135,8 +135,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 ])
                 .Verifiable();
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(new ConnectOptions
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(new ConnectOptions
             {
                 Sites = [
                     new()
@@ -148,8 +148,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 ]
             });
 
-            var sirenStatusOptions = new Mock<IOptions<SirenStatusOptions>>();
-            sirenStatusOptions.Setup(o => o.Value).Returns(new SirenStatusOptions()
+            var sirenStatusOptions = new Mock<IOptionsMonitor<SirenStatusOptions>>();
+            sirenStatusOptions.Setup(o => o.CurrentValue).Returns(new SirenStatusOptions()
             {
                 FailureTranslations = new Dictionary<string, string>()
                 {
@@ -230,8 +230,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 .Setup(s => s.PostDefectReport(It.IsAny<DefectReportModel>(), key))
                 .Returns(Task.CompletedTask);
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(new ConnectOptions
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(new ConnectOptions
             {
                 Sites = [new() { Name = "Test1", Sirens = [new Siren() { Name = name, Issi = issi }], Key = key }]
             });
@@ -275,8 +275,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 .Setup(s => s.PostDefectReport(It.IsAny<DefectReportModel>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(new ConnectOptions
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(new ConnectOptions
             {
                 Sites = [
                     new() { Name = "Site1", Sirens = [new Siren() { Name = name, Issi = issi }], Key = key1 },
@@ -337,8 +337,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 .Setup(s => s.PostDefectReport(It.IsAny<DefectReportModel>(), key))
                 .Returns(Task.CompletedTask);
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(new ConnectOptions
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(new ConnectOptions
             {
                 Sites = [new() { Name = "Site", Sirens = [new Siren() { Name = "Sirene", Issi = issi }], Key = key }]
             });
@@ -356,14 +356,14 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             var sirenLog = new Mock<Serilog.ILogger>();
             var connectApiService = new Mock<IConnectApiService>();
 
-            var connectOptions = new Mock<IOptions<ConnectOptions>>();
-            connectOptions.Setup(o => o.Value).Returns(new ConnectOptions
+            var connectOptions = new Mock<IOptionsMonitor<ConnectOptions>>();
+            connectOptions.Setup(o => o.CurrentValue).Returns(new ConnectOptions
             {
                 Sites = [new() { Name = "Test1", Sirens = [new Siren() { Name = "Testsirene", Issi = "1234567" }], Key = "testkey" }]
             });
 
-            var sirenStatusOptions = new Mock<IOptions<SirenStatusOptions>>();
-            sirenStatusOptions.Setup(o => o.Value).Returns(new SirenStatusOptions()
+            var sirenStatusOptions = new Mock<IOptionsMonitor<SirenStatusOptions>>();
+            sirenStatusOptions.Setup(o => o.CurrentValue).Returns(new SirenStatusOptions()
             {
                 FailureTranslations = new Dictionary<string, string>
                 {
@@ -378,13 +378,13 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             return (service, connectApiService);
         }
 
-        private SirenService CreateSirenServiceWithDeps(IConnectApiService connectApiService, IOptions<ConnectOptions> connectOptions)
+        private SirenService CreateSirenServiceWithDeps(IConnectApiService connectApiService, IOptionsMonitor<ConnectOptions> connectOptions)
         {
             var log = new Mock<ILogger<SirenService>>();
             var sirenLog = new Mock<Serilog.ILogger>();
 
-            var sirenStatusOptions = new Mock<IOptions<SirenStatusOptions>>();
-            sirenStatusOptions.Setup(o => o.Value).Returns(new SirenStatusOptions()
+            var sirenStatusOptions = new Mock<IOptionsMonitor<SirenStatusOptions>>();
+            sirenStatusOptions.Setup(o => o.CurrentValue).Returns(new SirenStatusOptions()
             {
                 FailureTranslations = new Dictionary<string, string>
                 {

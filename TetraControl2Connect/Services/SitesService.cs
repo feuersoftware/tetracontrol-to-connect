@@ -9,11 +9,11 @@ namespace FeuerSoftware.TetraControl2Connect.Services
     public class SitesService(
         ILogger<SitesService> log,
         IConnectApiService connectApiService,
-        IOptions<ConnectOptions> connectOptions) : ISitesService
+        IOptionsMonitor<ConnectOptions> connectOptions) : ISitesService
     {
         private readonly ILogger<SitesService> _log = log ?? throw new ArgumentNullException(nameof(log));
         private readonly IConnectApiService _connectApiService = connectApiService ?? throw new ArgumentNullException(nameof(connectApiService));
-        private readonly ConnectOptions _connectOptions = connectOptions?.Value ?? throw new ArgumentNullException(nameof(connectOptions));
+        private readonly IOptionsMonitor<ConnectOptions> _connectOptions = connectOptions ?? throw new ArgumentNullException(nameof(connectOptions));
         private readonly ConcurrentDictionary<string, SiteModel> _accessTokenSites = new();
         private bool _initialized = false;
 
@@ -31,7 +31,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
         {
             _log.LogDebug($"Initializing {nameof(SitesService)}.");
 
-            foreach (var siteFromConfiguration in _connectOptions.Sites)
+            foreach (var siteFromConfiguration in _connectOptions.CurrentValue.Sites)
             {
                 try
                 {
