@@ -36,12 +36,14 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             await Task.CompletedTask; // Update check is disabled in debug builds.
 #else
             var json = """
-                {
-                    "tag_name": "v99.0.0",
-                    "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/v99.0.0",
-                    "prerelease": false,
-                    "draft": false
-                }
+                [
+                    {
+                        "tag_name": "v99.0.0",
+                        "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/v99.0.0",
+                        "prerelease": false,
+                        "draft": false
+                    }
+                ]
                 """;
             var handler = new MockHttpMessageHandler(json, HttpStatusCode.OK);
             var service = CreateService(handler);
@@ -63,12 +65,14 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             var currentTag = $"v{currentVersion!.Major}.{currentVersion.Minor}.{currentVersion.Build}";
 
             var json = $$"""
-                {
-                    "tag_name": "{{currentTag}}",
-                    "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/{{currentTag}}",
-                    "prerelease": false,
-                    "draft": false
-                }
+                [
+                    {
+                        "tag_name": "{{currentTag}}",
+                        "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/{{currentTag}}",
+                        "prerelease": false,
+                        "draft": false
+                    }
+                ]
                 """;
             var handler = new MockHttpMessageHandler(json, HttpStatusCode.OK);
             var service = CreateService(handler);
@@ -83,12 +87,14 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
         public async Task CheckForUpdateAsync_Prerelease_ReturnsNull()
         {
             var json = """
-                {
-                    "tag_name": "v99.0.0",
-                    "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/v99.0.0",
-                    "prerelease": true,
-                    "draft": false
-                }
+                [
+                    {
+                        "tag_name": "v99.0.0",
+                        "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/v99.0.0",
+                        "prerelease": true,
+                        "draft": false
+                    }
+                ]
                 """;
             var handler = new MockHttpMessageHandler(json, HttpStatusCode.OK);
             var service = CreateService(handler);
@@ -103,12 +109,14 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
         public async Task CheckForUpdateAsync_Draft_ReturnsNull()
         {
             var json = """
-                {
-                    "tag_name": "v99.0.0",
-                    "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/v99.0.0",
-                    "prerelease": false,
-                    "draft": true
-                }
+                [
+                    {
+                        "tag_name": "v99.0.0",
+                        "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/v99.0.0",
+                        "prerelease": false,
+                        "draft": true
+                    }
+                ]
                 """;
             var handler = new MockHttpMessageHandler(json, HttpStatusCode.OK);
             var service = CreateService(handler);
@@ -147,12 +155,14 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
         public async Task CheckForUpdateAsync_InvalidTagFormat_ReturnsNull()
         {
             var json = """
-                {
-                    "tag_name": "not-a-version",
-                    "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/not-a-version",
-                    "prerelease": false,
-                    "draft": false
-                }
+                [
+                    {
+                        "tag_name": "not-a-version",
+                        "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/not-a-version",
+                        "prerelease": false,
+                        "draft": false
+                    }
+                ]
                 """;
             var handler = new MockHttpMessageHandler(json, HttpStatusCode.OK);
             var service = CreateService(handler);
@@ -167,12 +177,14 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
         public async Task CheckForUpdateAsync_OlderVersion_ReturnsNull()
         {
             var json = """
-                {
-                    "tag_name": "v0.0.1",
-                    "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/v0.0.1",
-                    "prerelease": false,
-                    "draft": false
-                }
+                [
+                    {
+                        "tag_name": "v0.0.1",
+                        "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/v0.0.1",
+                        "prerelease": false,
+                        "draft": false
+                    }
+                ]
                 """;
             var handler = new MockHttpMessageHandler(json, HttpStatusCode.OK);
             var service = CreateService(handler);
@@ -181,6 +193,42 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
 
             result.Should().BeNull();
             service.LatestUpdate.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task CheckForUpdateAsync_PreviewIsHigherButProductionUpdateExists_ReturnsProductionUpdate()
+        {
+            // The "latest" GitHub release is a preview (v100.0.0), but there is a newer production
+            // release (v99.0.0) that should still trigger the update notification.
+#if DEBUG
+            await Task.CompletedTask; // Update check is disabled in debug builds.
+#else
+            var json = """
+                [
+                    {
+                        "tag_name": "v100.0.0",
+                        "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/v100.0.0",
+                        "prerelease": true,
+                        "draft": false
+                    },
+                    {
+                        "tag_name": "v99.0.0",
+                        "html_url": "https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/v99.0.0",
+                        "prerelease": false,
+                        "draft": false
+                    }
+                ]
+                """;
+            var handler = new MockHttpMessageHandler(json, HttpStatusCode.OK);
+            var service = CreateService(handler);
+
+            var result = await service.CheckForUpdateAsync();
+
+            // Should find the production release, ignoring the higher-numbered preview.
+            result.Should().NotBeNull();
+            result!.LatestVersion.Should().Be("v99.0.0");
+            service.LatestUpdate.Should().Be(result);
+#endif
         }
     }
 }
