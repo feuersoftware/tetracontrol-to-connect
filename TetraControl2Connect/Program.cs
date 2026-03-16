@@ -51,8 +51,13 @@ namespace FeuerSoftware.TetraControl2Connect
                         rollingInterval: RollingInterval.Day,
                         rollOnFileSizeLimit: true,
                         retainedFileCountLimit: 31);
+#if DEBUG
+                    configuration.WriteTo.Console(
+                        restrictedToMinimumLevel: LogEventLevel.Debug);
+#else
                     configuration.WriteTo.Console(
                         restrictedToMinimumLevel: LogEventLevel.Information);
+#endif
                     configuration.WriteTo.Debug(LogEventLevel.Verbose);
                 });
 
