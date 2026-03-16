@@ -87,6 +87,7 @@ namespace FeuerSoftware.TetraControl2Connect
                     .AddSingleton<ISDSService, SDSService>()
                     .AddSingleton<ISitesService, SitesService>()
                     .AddSingleton<ISirenService, SirenService>()
+                    .AddSingleton<IUpdateService, UpdateService>()
                     .AddSingleton<Serilog.ILogger>(sirenLogger)
                     .AddHostedService<Agent>();
 
@@ -115,6 +116,14 @@ namespace FeuerSoftware.TetraControl2Connect
                     .AddPolicyHandler(HttpPolicyExtensions
                         .HandleTransientHttpError()
                         .WaitAndRetryAsync(1, retryAttempt => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt))));
+
+                // GitHub API HTTP client (for update checks)
+                builder.Services
+                    .AddHttpClient(nameof(IUpdateService), c =>
+                    {
+                        c.BaseAddress = new Uri("https://api.github.com/");
+                        c.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("TetraControl2Connect", Constants.Version));
+                    });
 
                 // Swagger / OpenAPI
                 builder.Services.AddEndpointsApiExplorer();
@@ -146,6 +155,7 @@ namespace FeuerSoftware.TetraControl2Connect
                 // Settings API endpoints
                 app.MapSettingsEndpoints();
                 app.MapBackupEndpoints();
+                app.MapUpdateEndpoints();
 
                 // SignalR hub
                 app.MapHub<MessageHub>("/hubs/messages");

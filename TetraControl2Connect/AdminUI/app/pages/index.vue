@@ -27,9 +27,24 @@ interface OverviewSection {
 
 const allSettings = ref<OverviewSection[]>([])
 
+interface UpdateInfo {
+  hasUpdate: boolean
+  latestVersion: string | null
+  releaseUrl: string | null
+}
+
+const updateInfo = ref<UpdateInfo | null>(null)
+
 onMounted(async () => {
   const data = await fetchAllSettings()
   if (data) allSettings.value = data.sections ?? []
+
+  try {
+    const config = useRuntimeConfig()
+    updateInfo.value = await $fetch<UpdateInfo>(`${config.public.apiBase}/update`)
+  } catch (e) {
+    console.debug('Update-Prüfung nicht verfügbar:', e)
+  }
 })
 
 function sectionExists(slug: string): boolean {
@@ -54,6 +69,29 @@ const needsSetup = computed(() => {
     </div>
 
     <div v-else>
+      <!-- Update available banner -->
+      <UCard v-if="updateInfo?.hasUpdate" class="mb-6 ring-2 ring-warning">
+        <div class="flex items-center gap-4">
+          <div class="p-3 rounded-full bg-warning/10">
+            <UIcon name="i-lucide-arrow-up-circle" class="w-8 h-8 text-warning" />
+          </div>
+          <div class="flex-1">
+            <h3 class="font-semibold">Neue Version verfügbar: {{ updateInfo.latestVersion }}</h3>
+            <p class="text-sm text-muted mt-1">
+              Eine neue Version von TetraControl2Connect ist verfügbar. Bitte aktualisieren Sie die Anwendung, um von den neuesten Funktionen und Fehlerbehebungen zu profitieren.
+            </p>
+          </div>
+          <UButton
+            label="Herunterladen"
+            icon="i-lucide-download"
+            color="warning"
+            trailing
+            :to="updateInfo.releaseUrl ?? '#'"
+            target="_blank"
+          />
+        </div>
+      </UCard>
+
       <!-- Setup banner -->
       <UCard v-if="needsSetup" class="mb-6 ring-2 ring-primary">
         <div class="flex items-center gap-4">
