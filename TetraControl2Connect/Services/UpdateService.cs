@@ -14,6 +14,9 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
         public async Task<UpdateInfo?> CheckForUpdateAsync(CancellationToken cancellationToken = default)
         {
+#if DEBUG
+            return null;
+#else
             try
             {
                 using var httpClient = _httpClientFactory.CreateClient(nameof(IUpdateService));
@@ -23,7 +26,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    _log.LogDebug("Update-Prüfung fehlgeschlagen. Statuscode: {StatusCode}", response.StatusCode);
+                    _log.LogDebug("Update check failed. Status code: {StatusCode}", response.StatusCode);
                     return null;
                 }
 
@@ -53,9 +56,10 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             }
             catch (Exception ex)
             {
-                _log.LogDebug(ex, "Update-Prüfung fehlgeschlagen.");
+                _log.LogDebug(ex, "Update check failed.");
                 return null;
             }
+#endif
         }
     }
 }

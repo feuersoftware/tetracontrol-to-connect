@@ -32,6 +32,9 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
         [Fact]
         public async Task CheckForUpdateAsync_NewVersionAvailable_ReturnsUpdateInfo()
         {
+#if DEBUG
+            await Task.CompletedTask; // Update check is disabled in debug builds.
+#else
             var json = """
                 {
                     "tag_name": "v99.0.0",
@@ -49,6 +52,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             result!.LatestVersion.Should().Be("v99.0.0");
             result.ReleaseUrl.Should().Be("https://github.com/feuersoftware/tetracontrol-to-connect/releases/tag/v99.0.0");
             service.LatestUpdate.Should().Be(result);
+#endif
         }
 
         [Fact]
