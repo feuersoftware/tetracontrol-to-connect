@@ -82,8 +82,6 @@ namespace FeuerSoftware.TetraControl2Connect
                     var update = await _updateService.CheckForUpdateAsync(cancellationToken);
                     if (update is not null)
                     {
-                        _log.LogWarning("Neue Version verfügbar: {Version} — {Url}", update.LatestVersion, update.ReleaseUrl);
-
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         Console.WriteLine();
                         Console.WriteLine($"  *** Neue Version verfügbar: {update.LatestVersion} ***");
