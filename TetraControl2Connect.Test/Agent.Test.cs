@@ -83,6 +83,9 @@ namespace FeuerSoftware.TetraControl2Connect.Test
             mockClients.Setup(c => c.All).Returns(mockClientProxy.Object);
             messageHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
 
+            var updateService = new Mock<IUpdateService>();
+            updateService.Setup(s => s.CheckForUpdateAsync(It.IsAny<System.Threading.CancellationToken>())).ReturnsAsync((UpdateInfo?)null);
+
             var agent = new Agent(
                 log.Object,
                 tcClient.Object,
@@ -98,7 +101,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test
                 httpClientFactory.Object,
                 sirenService.Object,
                 sitesService.Object,
-                messageHubContext.Object);
+                messageHubContext.Object,
+                updateService.Object);
 
             await agent.StartAsync(default);
 

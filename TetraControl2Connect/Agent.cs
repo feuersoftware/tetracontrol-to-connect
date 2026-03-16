@@ -27,7 +27,8 @@ namespace FeuerSoftware.TetraControl2Connect
         IHttpClientFactory httpClientFactory,
         ISirenService sirenService,
         ISitesService sitesService,
-        IHubContext<MessageHub> messageHub) : IHostedService, IDisposable
+        IHubContext<MessageHub> messageHub,
+        IUpdateService updateService) : IHostedService, IDisposable
     {
         private readonly ILogger<Agent> _log = log ?? throw new ArgumentNullException(nameof(log));
         private readonly ITetraControlClient _tcClient = tcClient ?? throw new ArgumentNullException(nameof(tcClient));
@@ -44,6 +45,7 @@ namespace FeuerSoftware.TetraControl2Connect
         private readonly ISirenService _sirenService = sirenService ?? throw new ArgumentNullException(nameof(sirenService));
         private readonly ISitesService _sitesService = sitesService ?? throw new ArgumentNullException(nameof(sitesService));
         private readonly IHubContext<MessageHub> _messageHub = messageHub ?? throw new ArgumentNullException(nameof(messageHub));
+        private readonly IUpdateService _updateService = updateService ?? throw new ArgumentNullException(nameof(updateService));
         private IDisposable? _statusSubscription;
         private IDisposable? _positionSubscription;
         private IDisposable? _sDSSubscription;
@@ -71,6 +73,28 @@ namespace FeuerSoftware.TetraControl2Connect
             _log.LogInformation("Using following SeverityOptions from appsettings.json: {@Options}", _severityOptions.CurrentValue);
             _log.LogInformation("Using following SirenCalloutOptions from appsettings.json: {@Options}", _sirenCalloutOptions.CurrentValue);
             _log.LogInformation("Using following SirenStatusOptions from appsettings.json: {@Options}", _sirenStatusOptions.CurrentValue);
+
+            // Check for updates in the background so it doesn't delay startup
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var update = await _updateService.CheckForUpdateAsync(cancellationToken);
+                    if (update is not null)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine();
+                        Console.WriteLine($"  *** Neue Version verfügbar: {update.LatestVersion} ***");
+                        Console.WriteLine($"  Download: {update.ReleaseUrl}");
+                        Console.WriteLine();
+                        Console.ResetColor();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _log.LogDebug(ex, "Update-Prüfung fehlgeschlagen.");
+                }
+            }, cancellationToken);
 
             // Connect to TetraControl first — this is independent of site configuration
             try
