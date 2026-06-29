@@ -7,7 +7,7 @@ namespace FeuerSoftware.TetraControl2Connect.Converters
 {
     sealed partial class UnixEpochDateTimeConverter : JsonConverter<DateTime>
     {
-        private static readonly DateTime EpochStart = new(1970, 1, 1, 0, 0, 0);
+        private static readonly DateTime EpochStart = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         [GeneratedRegex("^/Date\\(([+-]*\\d+)\\)/$", RegexOptions.CultureInvariant)]
         private static partial Regex UnixEpochRegex();
 

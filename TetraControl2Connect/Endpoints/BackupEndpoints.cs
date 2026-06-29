@@ -18,7 +18,17 @@ public static class BackupEndpoints
                 .OrderByDescending(b => b.CreatedAt)
                 .Select(b => new { b.Id, b.CreatedAt, b.Description })
                 .ToListAsync();
-            return Results.Ok(backups);
+
+            // CreatedAt is stored as UTC, but EF Core/SQLite reads DateTime back as
+            // DateTimeKind.Unspecified, which serializes without a 'Z'. Mark it as UTC so
+            // the browser parses it as UTC instead of local time (timezone-offset bug).
+            var result = backups.Select(b => new
+            {
+                b.Id,
+                CreatedAt = DateTime.SpecifyKind(b.CreatedAt, DateTimeKind.Utc),
+                b.Description
+            });
+            return Results.Ok(result);
         }).WithName("ListBackups");
 
         // POST /api/backups — Create a manual backup
@@ -36,7 +46,7 @@ public static class BackupEndpoints
 
             await RestoreFromBackupAsync(db, backup);
             ((IConfigurationRoot)configuration).Reload();
-            return Results.Ok(new { message = "Settings restored.", backup.Id, backup.CreatedAt, backup.Description });
+            return Results.Ok(new { message = "Settings restored.", backup.Id, CreatedAt = DateTime.SpecifyKind(backup.CreatedAt, DateTimeKind.Utc), backup.Description });
         }).WithName("RestoreBackup");
 
         // DELETE /api/backups/{id} — Delete a backup
