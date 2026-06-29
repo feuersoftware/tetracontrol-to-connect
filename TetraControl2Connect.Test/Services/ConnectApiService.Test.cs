@@ -149,7 +149,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                     Priority = Priority.High,
                     SequenceNumber = Faker.Random.AlphaNumeric(10),
                     CategoryId = Faker.Random.Int(1, 50),
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeOffset.UtcNow
                 }
             };
             var token = GenerateAccessToken();
@@ -195,8 +195,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             {
                 new()
                 {
-                    Start = DateTime.UtcNow,
-                    CreatedAt = DateTime.UtcNow,
+                    Start = DateTimeOffset.UtcNow,
+                    CreatedAt = DateTimeOffset.UtcNow,
                     Keyword = Faker.Random.AlphaNumeric(10),
                     Number = Faker.Random.AlphaNumeric(8)
                 }
@@ -308,8 +308,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
         {
             var model = new OperationModel
             {
-                Start = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow,
+                Start = DateTimeOffset.UtcNow,
+                CreatedAt = DateTimeOffset.UtcNow,
                 Keyword = Faker.Random.AlphaNumeric(10),
                 Number = Faker.Random.AlphaNumeric(8)
             };
@@ -376,7 +376,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             {
                 Status = AvailabilityStatus.Available,
                 Source = AvailabilitySource.Pager,
-                Until = DateTime.UtcNow.AddHours(8)
+                Until = DateTimeOffset.UtcNow.AddHours(8)
             };
             var token = GenerateAccessToken();
             var handler = new MockHttpMessageHandler("", HttpStatusCode.OK);
@@ -506,7 +506,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
         {
             var model = new OperationModel
             {
-                Start = DateTime.UtcNow,
+                Start = DateTimeOffset.UtcNow,
                 Keyword = Faker.Random.AlphaNumeric(10)
             };
             var token = GenerateAccessToken();
@@ -581,28 +581,28 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             {
                 new()
                 {
-                    CreatedAt = new DateTime(2024, 1, 1, 10, 0, 0, DateTimeKind.Utc),
-                    LastUpdateAt = new DateTime(2024, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+                    CreatedAt = new DateTimeOffset(2024, 1, 1, 10, 0, 0, TimeSpan.Zero),
+                    LastUpdateAt = new DateTimeOffset(2024, 1, 1, 12, 0, 0, TimeSpan.Zero),
                     Keyword = "Alpha",
                     Number = "1"
                 },
                 new()
                 {
-                    CreatedAt = new DateTime(2024, 1, 3, 10, 0, 0, DateTimeKind.Utc),
-                    LastUpdateAt = new DateTime(2024, 1, 3, 14, 0, 0, DateTimeKind.Utc),
+                    CreatedAt = new DateTimeOffset(2024, 1, 3, 10, 0, 0, TimeSpan.Zero),
+                    LastUpdateAt = new DateTimeOffset(2024, 1, 3, 14, 0, 0, TimeSpan.Zero),
                     Keyword = "Charlie",
                     Number = "3"
                 },
                 new()
                 {
-                    CreatedAt = new DateTime(2024, 1, 3, 10, 0, 0, DateTimeKind.Utc),
-                    LastUpdateAt = new DateTime(2024, 1, 3, 11, 0, 0, DateTimeKind.Utc),
+                    CreatedAt = new DateTimeOffset(2024, 1, 3, 10, 0, 0, TimeSpan.Zero),
+                    LastUpdateAt = new DateTimeOffset(2024, 1, 3, 11, 0, 0, TimeSpan.Zero),
                     Keyword = "Bravo",
                     Number = "2"
                 },
                 new()
                 {
-                    CreatedAt = new DateTime(2024, 1, 2, 10, 0, 0, DateTimeKind.Utc),
+                    CreatedAt = new DateTimeOffset(2024, 1, 2, 10, 0, 0, TimeSpan.Zero),
                     LastUpdateAt = null,
                     Keyword = "Delta",
                     Number = "4"
