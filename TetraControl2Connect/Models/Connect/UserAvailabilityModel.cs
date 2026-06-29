@@ -6,6 +6,6 @@
 
         public AvailabilitySource Source { get; set; } = AvailabilitySource.Pager;
 
-        public DateTime Until { get; set; }
+        public DateTimeOffset Until { get; set; }
     }
 }

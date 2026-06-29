@@ -18,17 +18,7 @@ public static class BackupEndpoints
                 .OrderByDescending(b => b.CreatedAt)
                 .Select(b => new { b.Id, b.CreatedAt, b.Description })
                 .ToListAsync();
-
-            // CreatedAt is stored as UTC, but EF Core/SQLite reads DateTime back as
-            // DateTimeKind.Unspecified, which serializes without a 'Z'. Mark it as UTC so
-            // the browser parses it as UTC instead of local time (timezone-offset bug).
-            var result = backups.Select(b => new
-            {
-                b.Id,
-                CreatedAt = DateTime.SpecifyKind(b.CreatedAt, DateTimeKind.Utc),
-                b.Description
-            });
-            return Results.Ok(result);
+            return Results.Ok(backups);
         }).WithName("ListBackups");
 
         // POST /api/backups — Create a manual backup
@@ -46,7 +36,7 @@ public static class BackupEndpoints
 
             await RestoreFromBackupAsync(db, backup);
             ((IConfigurationRoot)configuration).Reload();
-            return Results.Ok(new { message = "Settings restored.", backup.Id, CreatedAt = DateTime.SpecifyKind(backup.CreatedAt, DateTimeKind.Utc), backup.Description });
+            return Results.Ok(new { message = "Settings restored.", backup.Id, backup.CreatedAt, backup.Description });
         }).WithName("RestoreBackup");
 
         // DELETE /api/backups/{id} — Delete a backup
@@ -69,7 +59,7 @@ public static class BackupEndpoints
     /// </summary>
     public static async Task EnsureDailyBackupAsync(AppDbContext db)
     {
-        var today = DateTime.UtcNow.Date;
+        var today = new DateTimeOffset(DateTimeOffset.UtcNow.Date, TimeSpan.Zero);
         var hasBackupToday = await db.SettingsBackups
             .AnyAsync(b => b.CreatedAt >= today && b.CreatedAt < today.AddDays(1));
 
@@ -110,7 +100,7 @@ public static class BackupEndpoints
 
         var backup = new SettingsBackupEntity
         {
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTimeOffset.UtcNow,
             Description = description,
             SnapshotJson = JsonSerializer.Serialize(snapshot, JsonOptions),
         };

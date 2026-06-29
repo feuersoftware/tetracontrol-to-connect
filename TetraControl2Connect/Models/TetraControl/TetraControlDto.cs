@@ -57,7 +57,7 @@ namespace FeuerSoftware.TetraControl2Connect.Models.TetraControl
         public string Text { get; set; } = string.Empty;
 
         [JsonPropertyName("ts")]
-        [JsonConverter(typeof(UnixEpochDateTimeConverter))]
-        public DateTime TimestampUTC { get; set; } = DateTime.UtcNow;
+        [JsonConverter(typeof(UnixEpochDateTimeOffsetConverter))]
+        public DateTimeOffset TimestampUTC { get; set; } = DateTimeOffset.UtcNow;
     }
 }

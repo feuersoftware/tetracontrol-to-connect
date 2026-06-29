@@ -21,7 +21,7 @@ namespace FeuerSoftware.TetraControl2Connect.Extensions
 
         public static string GetFallbackOperationNumberForConnect(this TetraControlDto sds)
         {
-            return $"T2C-FB-{DateTime.Now:yyyy-MM-dd}-{sds.ExtractCalloutReference() ?? -1}";
+            return $"T2C-FB-{DateTimeOffset.Now:yyyy-MM-dd}-{sds.ExtractCalloutReference() ?? -1}";
         }
 
         public static SdsType GetSdsType(this TetraControlDto sds)

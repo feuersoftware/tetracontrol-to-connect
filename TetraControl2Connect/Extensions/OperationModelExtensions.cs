@@ -8,7 +8,7 @@ namespace FeuerSoftware.TetraControl2Connect.Extensions
 
         public static bool IsRecentlyAlertedOrUpdated(this OperationModel operation)
         {
-            var recentlyCreated = (DateTime.Now - operation.CreatedAt).Duration() < ActiveTimeSpan;
+            var recentlyCreated = (DateTimeOffset.Now - operation.CreatedAt).Duration() < ActiveTimeSpan;
 
             if (recentlyCreated)
             {
@@ -16,7 +16,7 @@ namespace FeuerSoftware.TetraControl2Connect.Extensions
             }
 
             var recentlyUpdated = operation.LastUpdateAt.HasValue &&
-                (DateTime.Now - operation.LastUpdateAt.Value).Duration() < ActiveTimeSpan;
+                (DateTimeOffset.Now - operation.LastUpdateAt.Value).Duration() < ActiveTimeSpan;
 
             return recentlyUpdated;
         }
