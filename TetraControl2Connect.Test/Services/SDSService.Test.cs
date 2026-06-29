@@ -23,8 +23,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             var number = Guid.NewGuid().ToString();
             var operation = new OperationModel()
             {
-                Start = DateTime.Now.AddSeconds(-20),
-                CreatedAt = DateTime.Now.AddSeconds(-10),
+                Start = DateTimeOffset.Now.AddSeconds(-20),
+                CreatedAt = DateTimeOffset.Now.AddSeconds(-10),
                 Number = number,
             };
 
@@ -92,8 +92,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             {
                 new()
                 {
-                    Start = DateTime.Now.AddSeconds(-20),
-                    CreatedAt = DateTime.Now.AddSeconds(-10),
+                    Start = DateTimeOffset.Now.AddSeconds(-20),
+                    CreatedAt = DateTimeOffset.Now.AddSeconds(-10),
                     Keyword = "XYZ"
                 },
             };
@@ -252,8 +252,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             {
                 new()
                 {
-                    Start = DateTime.Now.AddSeconds(-20),
-                    CreatedAt = DateTime.Now.AddSeconds(-10),
+                    Start = DateTimeOffset.Now.AddSeconds(-20),
+                    CreatedAt = DateTimeOffset.Now.AddSeconds(-10),
                     Number = number,
                 },
             };
@@ -500,8 +500,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             {
                 new()
                 {
-                    Start = DateTime.Now.AddSeconds(-20),
-                    CreatedAt = DateTime.Now.AddSeconds(-10),
+                    Start = DateTimeOffset.Now.AddSeconds(-20),
+                    CreatedAt = DateTimeOffset.Now.AddSeconds(-10),
                     Number = number,
                 },
             };
@@ -613,8 +613,8 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
             {
                 new()
                 {
-                    Start = DateTime.Now.AddSeconds(-20),
-                    CreatedAt = DateTime.Now.AddSeconds(-10),
+                    Start = DateTimeOffset.Now.AddSeconds(-20),
+                    CreatedAt = DateTimeOffset.Now.AddSeconds(-10),
                     Number = number,
                 },
             };

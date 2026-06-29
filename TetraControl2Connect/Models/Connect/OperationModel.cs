@@ -2,11 +2,11 @@
 {
     public record OperationModel
     {
-        public DateTime Start { get; set; }
+        public DateTimeOffset Start { get; set; }
 
-        public DateTime CreatedAt { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
 
-        public DateTime? LastUpdateAt { get; set; }
+        public DateTimeOffset? LastUpdateAt { get; set; }
 
         public string? Keyword { get; set; }
 

@@ -97,7 +97,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                     Latitude = latitude,
                     Longitude = longitude,
                 },
-                PositionTimestamp = DateTime.Now,
+                PositionTimestamp = DateTimeOffset.Now,
             };
 
             var accessTokens = GetAccessTokensForVehicle(vehicle.RadioId);
@@ -122,7 +122,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             var status = new StatusModel()
             {
                 Status = Convert.ToByte(dto.Status),
-                StatusTimestamp = DateTime.Now,
+                StatusTimestamp = DateTimeOffset.Now,
             };
 
             if ((status.Status == 5 && _programOptions.CurrentValue.IgnoreStatus5) ||

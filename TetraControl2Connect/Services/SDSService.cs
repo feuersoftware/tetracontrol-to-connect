@@ -53,8 +53,8 @@ namespace FeuerSoftware.TetraControl2Connect.Services
         private volatile AsyncRetryPolicy _updateOperationRetryPolicy = null!; // initialized in constructor via BuildRetryPolicy()
         private IDisposable? _patternOptionsChangeSubscription;
         private IDisposable? _programOptionsChangeSubscription;
-        private readonly ConcurrentDictionary<int, DateTime> _seenCalloutsByReference = new();
-        private readonly ConcurrentDictionary<string, DateTime> _fallbackPublishes = new();
+        private readonly ConcurrentDictionary<int, DateTimeOffset> _seenCalloutsByReference = new();
+        private readonly ConcurrentDictionary<string, DateTimeOffset> _fallbackPublishes = new();
 
         public SDSService(
             ILogger<SDSService> log,
@@ -276,15 +276,15 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             {
                 var calloutAlreadySeen = _seenCalloutsByReference.TryGetValue(calloutRef.Value, out var timeStamp);
 
-                if (calloutAlreadySeen && (DateTime.Now - timeStamp).Duration() <= TimeSpan.FromMinutes(3))
+                if (calloutAlreadySeen && (DateTimeOffset.Now - timeStamp).Duration() <= TimeSpan.FromMinutes(3))
                 {
                     _log.LogInformation("Callout already seen at {Time}. Ignoring...", timeStamp);
 
                     return;
                 }
 
-                _seenCalloutsByReference[calloutRef.Value] = DateTime.Now;
-                _log.LogDebug("CalloutRef {CalloutRef} stored with lastSeen {LastSeen}", calloutRef, DateTime.Now);
+                _seenCalloutsByReference[calloutRef.Value] = DateTimeOffset.Now;
+                _log.LogDebug("CalloutRef {CalloutRef} stored with lastSeen {LastSeen}", calloutRef, DateTimeOffset.Now);
             }
 
 
@@ -405,7 +405,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                     var availabiltyModel = new UserAvailabilityModel()
                     {
                         Status = status,
-                        Until = DateTime.Now.AddDays(_programOptions.CurrentValue.UserAvailabilityLifetimeDays),
+                        Until = DateTimeOffset.Now.AddDays(_programOptions.CurrentValue.UserAvailabilityLifetimeDays),
                     };
 
                     await _connectApiService.PutUserAvailability(token, user.Id, availabiltyModel);
@@ -579,11 +579,11 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
             // If there was a fallback within the three 3 minutes, dont create a new fallback and update the existing one
             if (_fallbackPublishes.TryGetValue(site.Key, out var lastFallback) &&
-                DateTime.Now - lastFallback <= TimeSpan.FromMinutes(3))
+                DateTimeOffset.Now - lastFallback <= TimeSpan.FromMinutes(3))
             {
                 _log.LogInformation("There was already a fallback alarm for site {Name} within the last 60s. Try to update the last fallback instead of creating another one...", site.Name);
 
-                if (DateTime.Now - lastFallback <= TimeSpan.FromSeconds(10))
+                if (DateTimeOffset.Now - lastFallback <= TimeSpan.FromSeconds(10))
                 {
                     _log.LogDebug("The last fallback was within the last 5s. Waiting for 5 seconds to proceed...");
                     await Task.Delay(TimeSpan.FromSeconds(5));
@@ -606,7 +606,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
 
             _log.LogDebug("Created operation: {@Operation}", operation);
 
-            _fallbackPublishes[site.Key] = DateTime.Now;
+            _fallbackPublishes[site.Key] = DateTimeOffset.Now;
 
             await _connectApiService.PostOperation(site.Key, operation);
 
@@ -662,7 +662,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
                         Value = "Alarm aus Rückfallebene TetraControl (Digitalfunk)! Daten unvollständig!",
                     },
                 ],
-                Start = DateTime.Now,
+                Start = DateTimeOffset.Now,
                 Facts = sds.Text.RemoveSubnetAddresses(),
                 Ric = ric,
                 Source = $"TetraControl2Connect {Constants.Version}",
@@ -735,7 +735,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             {
                 Number = cache.Number.Match(text).Groups[1].Value.Trim(),
                 Keyword = cache.Keyword.Match(text).Groups[1].Value.Trim(),
-                Start = DateTime.Now,
+                Start = DateTimeOffset.Now,
                 Facts = cache.Facts.Match(text).Groups[1].Value.Trim(),
                 Ric = cache.Ric.Match(text).Groups[1].Value.Trim(),
                 Source = $"TetraControl2Connect {Constants.Version}",

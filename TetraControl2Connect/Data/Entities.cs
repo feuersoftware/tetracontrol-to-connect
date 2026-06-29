@@ -151,7 +151,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data
     public class SettingsBackupEntity
     {
         public int Id { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
         public string Description { get; set; } = string.Empty;
         public string SnapshotJson { get; set; } = string.Empty;
     }

@@ -55,7 +55,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 Latitude = firstLat,
                 Longitude = firstLong,
                 SourceSSI = issi,
-                TimestampUTC = DateTime.UtcNow,
+                TimestampUTC = DateTimeOffset.UtcNow,
             };
 
             var dto2 = new TetraControlDto
@@ -63,7 +63,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 Latitude = secondLat,
                 Longitude = secondLong,
                 SourceSSI = issi,
-                TimestampUTC = DateTime.UtcNow,
+                TimestampUTC = DateTimeOffset.UtcNow,
             };
 
             var log = new Mock<ILogger<VehicleService>>();
@@ -131,7 +131,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 Latitude = firstLat,
                 Longitude = firstLong,
                 SourceSSI = issi,
-                TimestampUTC = DateTime.UtcNow,
+                TimestampUTC = DateTimeOffset.UtcNow,
             };
 
             var dto2 = new TetraControlDto
@@ -139,7 +139,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 Latitude = secondLat,
                 Longitude = secondLong,
                 SourceSSI = issi,
-                TimestampUTC = DateTime.UtcNow,
+                TimestampUTC = DateTimeOffset.UtcNow,
             };
 
             var log = new Mock<ILogger<VehicleService>>();

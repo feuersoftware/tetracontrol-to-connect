@@ -131,7 +131,7 @@ namespace FeuerSoftware.TetraControl2Connect.Test.Services
                 .Setup(s => s.GetDefectReports(key))
                 .ReturnsAsync(
                 [
-                    new DefectReportModel { Id = 1, ShortDescription = $"Sirenen-Störung: {name} | Sabotagealarm, Türkontakt geöffnet", CreatedAt = DateTime.Now.AddDays(-6)}
+                    new DefectReportModel { Id = 1, ShortDescription = $"Sirenen-Störung: {name} | Sabotagealarm, Türkontakt geöffnet", CreatedAt = DateTimeOffset.Now.AddDays(-6)}
                 ])
                 .Verifiable();
 
