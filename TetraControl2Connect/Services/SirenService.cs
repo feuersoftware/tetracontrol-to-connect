@@ -5,6 +5,7 @@ using FeuerSoftware.TetraControl2Connect.Shared.Options;
 using FeuerSoftware.TetraControl2Connect.Shared.Options.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Collections.Concurrent;
 using System.Reactive.Linq;
 using System.Text;
 using System.Text.Json;
@@ -24,7 +25,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
         private readonly IConnectApiService _connectApiService;
         private readonly IOptionsMonitor<ConnectOptions> _connectOptions;
         private readonly IOptionsMonitor<SirenStatusOptions> _sirenStatusOptions;
-        private Dictionary<string, DateTimeOffset> _sirenHeartbeats = [];
+        private ConcurrentDictionary<string, DateTimeOffset> _sirenHeartbeats = new();
         private readonly IDisposable? _sirenWatchdogSubscription;
 
         public SirenService(ILogger<SirenService> log,
@@ -43,7 +44,12 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             {
                 foreach (var siren in GetConfiguredSirensWithHeartbeatInterval())
                 {
-                    var lastHeartbeat = _sirenHeartbeats[siren.Issi];
+                    if (!_sirenHeartbeats.TryGetValue(siren.Issi, out var lastHeartbeat))
+                    {
+                        _log.LogDebug("No heartbeat recorded yet for siren {SirenName} (ISSI {Issi}) – possibly added via configuration change. Skipping this check.", siren.Name, siren.Issi);
+                        continue;
+                    }
+
                     var timeRemaining = lastHeartbeat.Add(siren.ExpectedHeartbeatInterval!.Value) - DateTimeOffset.Now;
                     var tolerance = TimeSpan.FromMinutes(5);
                     var heartbeatIsOverdue = timeRemaining < -tolerance;
@@ -98,7 +104,7 @@ namespace FeuerSoftware.TetraControl2Connect.Services
             }
             else
             {
-                _sirenHeartbeats = savedHeartbeats;
+                _sirenHeartbeats = new ConcurrentDictionary<string, DateTimeOffset>(savedHeartbeats);
                 _log.LogDebug("Restored saved heartbeats: {@SavedHeartbeats}", savedHeartbeats);
             }
         }

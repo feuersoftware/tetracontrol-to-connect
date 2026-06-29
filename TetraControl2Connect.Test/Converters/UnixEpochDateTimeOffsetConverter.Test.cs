@@ -6,7 +6,7 @@ using Xunit;
 
 namespace FeuerSoftware.TetraControl2Connect.Test.Converters
 {
-    public class UnixEpochDateTimeOffsetConverter
+    public class UnixEpochDateTimeOffsetConverterTest
     {
         // 2021-05-13T14:30:00Z
         private const long SampleUnixMillis = 1620916200000;
