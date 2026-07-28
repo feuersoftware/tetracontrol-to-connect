@@ -22,9 +22,5 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0"
-  },
-  "overrides": {
-    "esbuild": "^0.28.1",
-    "brace-expansion@<=5.0.7": ">=5.0.8"
   }
 }
