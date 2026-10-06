@@ -9,6 +9,8 @@ export default defineConfig({
   reporter: 'html',
   use: {
     baseURL: 'http://localhost:3000',
+    // The UI picks its language from the browser; tests assert German texts
+    locale: 'de-DE',
     trace: 'on-first-retry',
   },
   webServer: {

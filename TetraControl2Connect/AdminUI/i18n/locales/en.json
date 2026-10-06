@@ -1,0 +1,496 @@
+{
+  "app": {
+    "title": "TetraControl2Connect",
+    "fullTitle": "TetraControl2Connect Admin",
+    "shortTitle": "TC2C Admin",
+    "admin": "Admin",
+    "copyright": "© {year} FeuerSoftware GmbH",
+    "openMenu": "Open menu",
+    "language": "Language"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "program": "Program options",
+    "tetracontrol": "TetraControl",
+    "connect": "Connect / Sites",
+    "status": "Status",
+    "pattern": "Patterns",
+    "severity": "Severity levels",
+    "sirenCallout": "Siren callout",
+    "sirenStatus": "Siren status",
+    "backups": "Backups",
+    "live": "Live view",
+    "setup": "Initial setup"
+  },
+  "common": {
+    "save": "Save",
+    "add": "Add",
+    "delete": "Delete",
+    "remove": "Remove",
+    "cancel": "Cancel",
+    "name": "Name",
+    "error": "Error",
+    "loading": "Loading…"
+  },
+  "settings": {
+    "loadErrorTitle": "Failed to load",
+    "loadAllError": "Settings could not be loaded.",
+    "loadError": "{section} could not be loaded.",
+    "savedTitle": "Saved",
+    "saved": "{section} was saved successfully.",
+    "saveErrorTitle": "Failed to save",
+    "saveError": "{section} could not be saved."
+  },
+  "dashboard": {
+    "subtitle": "Overview of all settings sections",
+    "configured": "Configured",
+    "notConfigured": "Not configured",
+    "sections": {
+      "program": "General program settings",
+      "tetracontrol": "TetraControl connection settings",
+      "connect": "Sites, subnets and sirens",
+      "status": "Status mappings",
+      "pattern": "Regex patterns for alarm parsing",
+      "severity": "Severity translations",
+      "sirenCallout": "Siren code translations",
+      "sirenStatus": "Siren error translations"
+    },
+    "update": {
+      "title": "New version available: {version}",
+      "description": "A new version of TetraControl2Connect is available. Please update the application to benefit from the latest features and bug fixes.",
+      "download": "Download"
+    },
+    "setup": {
+      "title": "Initial setup required",
+      "description": "TetraControl and Connect are not configured yet. The setup wizard guides you through the basic configuration in a few steps.",
+      "start": "Start setup"
+    }
+  },
+  "live": {
+    "subtitle": "Real-time messages from TetraControl",
+    "hubConnected": "Live connection active",
+    "hubDisconnected": "Live connection disconnected",
+    "tetraControlConnected": "TetraControl connected",
+    "tetraControlDisconnected": "TetraControl disconnected",
+    "clear": "Clear",
+    "waiting": "Waiting for messages...",
+    "unknownSource": "Unknown",
+    "statusValue": "Status: {status}",
+    "types": {
+      "status": "Status",
+      "position": "Position",
+      "callout": "Callout"
+    }
+  },
+  "backups": {
+    "subtitle": "Restore points for the settings",
+    "create": "Create backup",
+    "restore": "Restore",
+    "info": {
+      "automatic": "Whenever the settings are changed, a daily backup is created automatically (one per day). You can also create a manual backup at any time.",
+      "restore": "Use {action} to reset all settings to an earlier point in time. The current configuration will be completely replaced by the backed-up values."
+    },
+    "empty": {
+      "title": "No backups available",
+      "description": "Backups are created automatically as soon as you change settings."
+    },
+    "descriptions": {
+      "automatic": "Automatic backup",
+      "automaticBeforeImport": "Automatic backup before import",
+      "manual": "Manual backup"
+    },
+    "loadErrorTitle": "Error loading",
+    "loadError": "Backups could not be loaded.",
+    "createdTitle": "Backup created",
+    "created": "A manual backup was created successfully.",
+    "createError": "Backup could not be created.",
+    "restoredTitle": "Restored",
+    "restored": "The settings were restored successfully.",
+    "restoreError": "Restore failed.",
+    "deletedTitle": "Deleted",
+    "deleted": "The backup was deleted.",
+    "deleteError": "Backup could not be deleted."
+  },
+  "dictionary": {
+    "options": "Options",
+    "keyLabel": "Key",
+    "valueLabel": "Translation",
+    "empty": "No translations configured"
+  },
+  "severity": {
+    "description": "Configure severity translations",
+    "info": "Translate the severity levels from TETRA alarm messages into readable labels for Feuer Software Connect.",
+    "infoDetail": "The {key} is the severity value from the TETRA message; the {value} is the text displayed in Connect. Optionally, the translation can also be used as the incident keyword.",
+    "useAsKeyword": "Use severity translation as keyword",
+    "useAsKeywordHint": "Translated severity levels are used as the incident keyword",
+    "translations": "Translations",
+    "newKey": "New key"
+  },
+  "sirenCallout": {
+    "description": "Configure siren code translations",
+    "info": "Configure the translation of siren alarm codes. When a siren receives an alarm code, it is converted into readable text using the configured translations.",
+    "infoDetail": "The {key} is the numeric code from the TETRA message; the {value} is the text displayed in Connect. Optionally, the translation can be used as the incident keyword.",
+    "useAsKeyword": "Use siren code translation as keyword",
+    "useAsKeywordHint": "Translated siren codes are used as the incident keyword",
+    "translations": "Siren code translations",
+    "keyLabel": "Siren code",
+    "newKey": "New code"
+  },
+  "sirenStatus": {
+    "description": "Configure siren error translations",
+    "info": "Translate the error codes reported by sirens when a fault occurs. These translations turn technical error codes into readable descriptions for Feuer Software Connect.",
+    "infoDetail": "The {key} is the numeric code from the siren status message; the {value} is the error description shown in Connect as a fault message.",
+    "translations": "Error translations",
+    "keyLabel": "Error code",
+    "newKey": "New error code"
+  },
+  "pattern": {
+    "subtitle": "Regex patterns for alarm parsing",
+    "intro": {
+      "text": "Define the regular expressions (regex) used to extract information from TETRA alarm messages (SDS). Each field needs a regex pattern that extracts the desired value from the alarm text.",
+      "usage": "Use {namedGroups} such as {example} to mark the extracted value. You can check your patterns directly with the {tester} or have suggestions generated via the {aiHelp}.",
+      "namedGroups": "named capture groups",
+      "tester": "regex tester",
+      "aiHelp": "AI assistant"
+    },
+    "tester": {
+      "title": "Regex Tester",
+      "sampleLabel": "Sample alarm text",
+      "samplePlaceholder": "Paste a sample alarm text here to test the patterns...",
+      "sampleHint": "This text is used to test all patterns and for the AI assistant. Click the flask icon next to a pattern to see the result."
+    },
+    "standardPatterns": "Standard Patterns",
+    "testPattern": "Test pattern",
+    "aiHelp": "AI assistant",
+    "patternPlaceholder": "Enter regex pattern",
+    "invalidRegex": "Invalid regular expression",
+    "noPattern": "No pattern entered.",
+    "invalidPatternCannotTest": "The pattern is invalid and cannot be tested.",
+    "matchFound": "Match found",
+    "match": "Match",
+    "noMatch": "No match",
+    "captureGroups": "Capture groups:",
+    "fields": {
+      "numberPattern": {
+        "label": "Incident number",
+        "hint": "e.g. a sequential number such as \"E2024-001234\""
+      },
+      "keywordPattern": {
+        "label": "Keyword",
+        "hint": "e.g. \"B3\" or \"THL1\""
+      },
+      "factsPattern": {
+        "label": "Incident details",
+        "hint": "Free-text description of the incident"
+      },
+      "reporterNamePattern": {
+        "label": "Reporter name",
+        "hint": "Name of the person reporting"
+      },
+      "reporterPhoneNumberPattern": {
+        "label": "Reporter phone number",
+        "hint": "Phone number of the person reporting"
+      },
+      "cityPattern": {
+        "label": "City",
+        "hint": "Name of the incident location's city"
+      },
+      "streetPattern": {
+        "label": "Street",
+        "hint": "Street name of the incident location"
+      },
+      "houseNumberPattern": {
+        "label": "House number",
+        "hint": "House number at the incident location"
+      },
+      "zipCodePattern": {
+        "label": "ZIP code",
+        "hint": "Postal code of the incident location"
+      },
+      "districtPattern": {
+        "label": "District",
+        "hint": "District or neighborhood"
+      },
+      "latitudePattern": {
+        "label": "Latitude",
+        "hint": "Geographic latitude (decimal degrees)"
+      },
+      "longitudePattern": {
+        "label": "Longitude",
+        "hint": "Geographic longitude (decimal degrees)"
+      },
+      "ricPattern": {
+        "label": "RIC",
+        "hint": "Radio Identification Code"
+      }
+    },
+    "additional": {
+      "title": "Additional Properties",
+      "empty": "No additional properties configured",
+      "namePlaceholder": "Property name",
+      "patternLabel": "Pattern (regex)",
+      "patternPlaceholder": "Regex pattern",
+      "fallbackName": "Additional property"
+    },
+    "ai": {
+      "title": "AI Regex Assistant",
+      "field": "Field: {field}",
+      "sampleLabel": "Sample alarm text",
+      "expectedValue": "Expected value",
+      "expectedValueDescription": "Which value should be extracted for \"{field}\" from the sample text?",
+      "expectedValuePlaceholder": "e.g. paste the actual value from the sample text above here",
+      "currentPattern": "Current pattern",
+      "privacy": "I confirm that the sample text contains {noSensitiveData}. The text will be sent to an external AI service.",
+      "noSensitiveData": "no confidential or privacy-sensitive data",
+      "copyPrompt": "Copy prompt",
+      "openChatGpt": "Open ChatGPT",
+      "promptCopiedTitle": "Prompt copied",
+      "promptCopiedDescription": "Paste the prompt into your preferred AI tool (e.g. Gemini, Claude, Copilot).",
+      "copiedTitle": "Copied",
+      "copiedDescription": "AI prompt was copied to the clipboard.",
+      "prompt": {
+        "intro": "I need a regular expression (regex) that extracts a specific value from a TETRA radio alarm message (SDS).",
+        "taskHeading": "Task",
+        "task": "Create a regex pattern that extracts the value for the field \"{field}\" from the following alarm text.",
+        "sampleHeading": "Sample alarm text",
+        "expectedHeading": "Expected value",
+        "expected": "In the sample text, the value for \"{field}\" is: {value}",
+        "structureHeading": "Important notes on the message structure",
+        "structureSeparators": "The alarm text follows a fixed structure with separators (e.g. line breaks, semicolons, tabs or other delimiters)",
+        "structureExample": "The given value \"{value}\" is only an example from this particular message. In other messages, a different value appears at the same position (e.g. instead of \"{value}\" there could be completely different text)",
+        "structurePosition": "The pattern must identify the **position of the value within the message structure**, not the specific value itself",
+        "structureOrientation": "Use the surrounding separators, keywords or the field position to target the correct section",
+        "existingHeading": "Existing pattern (to be improved)",
+        "requirementsHeading": "Technical requirements",
+        "requirementSyntax": "Regex syntax: {syntax}",
+        "requirementNamedGroup": "Use a named capture group: {group}",
+        "requirementRobust": "The pattern should be robust and also match slightly different values at the same position",
+        "requirementOutput": "Return only the final regex pattern, without code blocks or explanation"
+      }
+    }
+  },
+  "connect": {
+    "subtitle": "Manage sites, subnet addresses and sirens",
+    "addSite": "Add site",
+    "addFirstSite": "Add first site",
+    "noSites": "No sites configured",
+    "siteFallbackName": "Site {n}",
+    "siteSummary": "{subnets} subnets, {sirens} sirens",
+    "subnets": "Subnet addresses",
+    "noSubnets": "No subnet addresses configured",
+    "sirens": "Sirens",
+    "noSirens": "No sirens configured",
+    "info": {
+      "sites": "Manage your Feuer Software Connect sites here. Each site represents a Connect instance with its own API-Key.",
+      "subnets": "{sna} assign TETRA subnets to a site. If “Alarm directly” is enabled, alarms are forwarded to this site immediately. The {gssi} is the group address of the subnet.",
+      "subnetsLabel": "Subnet addresses (SNA)",
+      "sirens": "{sirens} are identified by their ISSI. Optionally, a heartbeat interval can be configured to monitor the siren's availability.",
+      "sirensLabel": "Sirens"
+    },
+    "fields": {
+      "siteName": "Site name",
+      "apiKey": "API-Key",
+      "alarmDirectly": "Alarm directly",
+      "sirenName": "Siren name",
+      "heartbeatInterval": "Heartbeat interval (HH:MM:SS)",
+      "heartbeatIntervalPlaceholder": "Empty = disabled"
+    }
+  },
+  "tetracontrol": {
+    "subtitle": "Connection settings for the TetraControl server",
+    "connection": "Connection",
+    "info": {
+      "connection": "Configure the connection to the TetraControl server here. TetraControl2Connect connects to TetraControl via WebSocket and receives status, position and SDS messages in real time.",
+      "host": "Enter the IP address or hostname of the TetraControl server and the WebSocket port."
+    },
+    "fields": {
+      "host": "Host",
+      "hostPlaceholder": "e.g. 192.168.1.100",
+      "port": "Port",
+      "username": "Username",
+      "password": "Password"
+    }
+  },
+  "program": {
+    "subtitle": "General program settings",
+    "info": {
+      "dataForwarding": "Define which data is forwarded from TetraControl to Feuer Software Connect. Individual features such as vehicle status, position transmission, alarms or user availability can be enabled or disabled independently.",
+      "parameters": "Under {numbers} and {timespans} you can adjust timeout and retry parameters. The {heartbeat} periodically sends a signal to a configurable URL to monitor the system's availability.",
+      "numbersLabel": "Numeric values",
+      "timespansLabel": "Time spans",
+      "heartbeatLabel": "Heartbeat"
+    },
+    "sections": {
+      "dataTransfer": "Data transfer & behavior",
+      "numbers": "Numeric values",
+      "timespans": "Time spans & URLs"
+    },
+    "fields": {
+      "sendVehicleStatus": {
+        "label": "Send vehicle status",
+        "description": "Transmit vehicle status to Connect"
+      },
+      "sendVehiclePositions": {
+        "label": "Send vehicle positions",
+        "description": "Transmit GPS positions to Connect"
+      },
+      "sendUserOperationStatus": {
+        "label": "Send operation status",
+        "description": "Transmit user operation status"
+      },
+      "sendUserAvailability": {
+        "label": "Send availability",
+        "description": "Transmit user availability"
+      },
+      "sendAlarms": {
+        "label": "Send alarms",
+        "description": "Transmit alarms to Connect"
+      },
+      "updateExistingOperations": {
+        "label": "Update existing operations"
+      },
+      "ignoreStatus": "Ignore status {n}",
+      "addPropertyForAlarmTexts": {
+        "label": "Add property for alarm texts"
+      },
+      "useFullyQualifiedSubnetAddressForConnect": {
+        "label": "Use fully qualified subnet address"
+      },
+      "ignoreAlarmWithoutSubnetAddresses": {
+        "label": "Ignore alarms without subnet addresses"
+      },
+      "acceptCalloutsForSirens": {
+        "label": "Accept siren callouts"
+      },
+      "acceptSDSAsCalloutsWithPattern": {
+        "label": "Accept SDS as callout with pattern"
+      },
+      "userAvailabilityLifetimeDays": "Availability lifetime (days)",
+      "webSocketReconnectTimeoutMinutes": "WebSocket reconnect timeout (min.)",
+      "fallbackMaxRetryCount": "Max. retries before fallback",
+      "fallbackDelay": "Fallback delay (HH:MM:SS)",
+      "heartbeatInterval": "Heartbeat interval (HH:MM:SS)",
+      "heartbeatIntervalPlaceholder": "00:05:00 (empty = disabled)",
+      "heartbeatEndpointUrl": "Heartbeat endpoint URL"
+    }
+  },
+  "status": {
+    "subtitle": "Status mappings for responders",
+    "mappings": "Status mappings",
+    "info": {
+      "definition": "Define the TETRA status values that correspond to the various availability states in Feuer Software Connect.",
+      "matching": "When a user changes their status on the TETRA radio, the numeric status value is matched against this table and the corresponding availability status is sent to Connect. Enter the status numbers as comma-separated values (e.g. “1,2”)."
+    },
+    "fields": {
+      "availableStatus": {
+        "label": "Available",
+        "description": "Status value for available responders"
+      },
+      "limitedAvailableStatus": {
+        "label": "Limited availability",
+        "description": "Status value for responders with limited availability"
+      },
+      "notAvailableStatus": {
+        "label": "Not available",
+        "description": "Status value for unavailable responders"
+      },
+      "comingStatus": {
+        "label": "Coming",
+        "description": "Status value for responders who confirmed"
+      },
+      "notComingStatus": {
+        "label": "Not coming",
+        "description": "Status value for responders who declined"
+      },
+      "comingLaterStatus": {
+        "label": "Coming later",
+        "description": "Status value for responders who confirmed with a delay"
+      }
+    }
+  },
+  "setup": {
+    "subtitle": "Setup wizard",
+    "next": "Next",
+    "back": "Back",
+    "skip": "Skip setup →",
+    "steps": {
+      "welcome": "Welcome",
+      "connect": "Connect",
+      "options": "Options",
+      "summary": "Done"
+    },
+    "welcome": {
+      "title": "Welcome to TetraControl2Connect!",
+      "intro": "This wizard guides you through the initial setup. In just a few steps you will connect TetraControl to Feuer Software Connect.",
+      "tetracontrolHint": "Set up connection",
+      "connectHint": "Configure site",
+      "optionsHint": "Choose data transfer"
+    },
+    "tetracontrol": {
+      "title": "TetraControl connection",
+      "description": "Configure the WebSocket connection to the TetraControl server.",
+      "hostLabel": "Host",
+      "hostDescription": "IP address or hostname of the TetraControl server",
+      "hostPlaceholder": "e.g. 192.168.1.100",
+      "portLabel": "Port",
+      "portDescription": "Default: 8085",
+      "usernameLabel": "Username",
+      "passwordLabel": "Password"
+    },
+    "connect": {
+      "title": "First Connect site",
+      "description": "Add your first Feuer Software Connect site. You can add more sites later in the settings.",
+      "siteNameLabel": "Site name",
+      "siteNameDescription": "A descriptive name for the site",
+      "siteNamePlaceholder": "e.g. Springfield Fire Department",
+      "apiKeyLabel": "API key",
+      "apiKeyPlaceholder": "API key from Feuer Software Connect",
+      "apiKeyDescription": "You can find the API key in the {portal} under \"Öffentliche Connect-Schnittstelle\" (public Connect interface).",
+      "portalLink": "Connect portal",
+      "info": "Each site requires its own API key from Feuer Software Connect. You can configure subnet addresses (SNA/GSSI) and sirens afterwards in the detailed settings."
+    },
+    "options": {
+      "description": "Choose which data should be sent to Connect.",
+      "vehiclePositions": "Vehicle positions",
+      "vehiclePositionsHint": "GPS positions of vehicles",
+      "vehicleStatus": "Vehicle status",
+      "vehicleStatusHint": "Status changes (e.g. status 1-6)",
+      "userAvailability": "Availability",
+      "userAvailabilityHint": "Availability status of responders",
+      "userOperationStatus": "Operation status",
+      "userOperationStatusHint": "Send user operation status",
+      "alarms": "Alarms (SDS)",
+      "alarmsHint": "Alarms from SDS messages",
+      "alarmsWarning": "{important} For operations from SDS messages to be detected correctly and sent to Connect, you must configure the matching regex patterns under {pattern} after the initial setup.",
+      "alarmsWarningImportant": "Important for alarms (SDS):",
+      "alarmsWarningDetails": "These patterns determine how the operation number, keyword, address and other information are extracted from the alarm text. Without configured patterns, received alarms cannot be evaluated."
+    },
+    "summary": {
+      "title": "Summary",
+      "description": "Review your settings and save the configuration.",
+      "user": "User",
+      "connectSite": "Connect site",
+      "site": "Site",
+      "dataTransfer": "Data transfer",
+      "alarms": "Alarms",
+      "noData": "No data enabled",
+      "saveConfiguration": "Save configuration"
+    },
+    "completed": {
+      "title": "Setup complete!",
+      "description": "The basic configuration has been saved. You can now adjust further settings or return to the dashboard.",
+      "nextSteps": "Next steps",
+      "nextStepPattern": "Configure regex patterns so that alarms from SDS messages can be evaluated (operation number, keyword, address, etc.)",
+      "subnetAddresses": "Subnet addresses",
+      "nextStepSubnetAddresses": "Add SNA/GSSI mappings for the site",
+      "statusMappings": "Status mappings",
+      "nextStepStatusMappings": "Map TETRA status codes to Connect status values",
+      "configurePattern": "Configure patterns",
+      "toDashboard": "Go to dashboard"
+    },
+    "toast": {
+      "completedTitle": "Setup complete",
+      "completedDescription": "All settings have been saved. You can adjust the configuration at any time via the settings pages."
+    }
+  }
+}
