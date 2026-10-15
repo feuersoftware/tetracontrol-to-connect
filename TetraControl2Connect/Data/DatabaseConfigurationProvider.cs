@@ -224,7 +224,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data
 
         /// <summary>
         /// Imports settings from appsettings.json into the database.
-        /// Clears all existing settings tables and re-imports from configuration.
+        /// Replaces only sections present in the source, preserving all other settings.
         /// Used for migrating existing customer configurations to the database.
         /// Sections not present in appsettings.json are skipped gracefully.
         /// </summary>
@@ -232,20 +232,48 @@ namespace FeuerSoftware.TetraControl2Connect.Data
         {
             logger?.LogInformation("Importing settings from appsettings.json...");
 
-            context.FailureTranslations.RemoveRange(context.FailureTranslations);
-            context.SirenStatusSettings.RemoveRange(context.SirenStatusSettings);
-            context.SirenCodeTranslations.RemoveRange(context.SirenCodeTranslations);
-            context.SirenCalloutSettings.RemoveRange(context.SirenCalloutSettings);
-            context.SeverityTranslations.RemoveRange(context.SeverityTranslations);
-            context.SeveritySettings.RemoveRange(context.SeveritySettings);
-            context.AdditionalPatterns.RemoveRange(context.AdditionalPatterns);
-            context.PatternSettings.RemoveRange(context.PatternSettings);
-            context.StatusSettings.RemoveRange(context.StatusSettings);
-            context.SubnetAddresses.RemoveRange(context.SubnetAddresses);
-            context.Sirens.RemoveRange(context.Sirens);
-            context.Sites.RemoveRange(context.Sites);
-            context.TetraControlSettings.RemoveRange(context.TetraControlSettings);
-            context.ProgramSettings.RemoveRange(context.ProgramSettings);
+            string[] sectionNames = [ProgramOptions.SectionName, TetraControlOptions.SectionName,
+                StatusOptions.SectionName, PatternOptions.SectionName, SeverityOptions.SectionName,
+                SirenCalloutOptions.SectionName, SirenStatusOptions.SectionName, ConnectOptions.SectionName];
+            if (!sectionNames.Any(name => configuration.GetSection(name).GetChildren().Any()))
+                throw new ArgumentException("Die Datei enthält keine unterstützten Einstellungsbereiche.");
+            if (sectionNames.Any(name => configuration.GetSection(name).Value != null))
+                throw new ArgumentException("Einstellungsbereiche müssen JSON-Objekte sein.");
+
+            await using var transaction = await context.Database.BeginTransactionAsync().ConfigureAwait(false);
+
+            if (configuration.GetSection(SirenStatusOptions.SectionName).Exists())
+            {
+                context.FailureTranslations.RemoveRange(context.FailureTranslations);
+                context.SirenStatusSettings.RemoveRange(context.SirenStatusSettings);
+            }
+            if (configuration.GetSection(SirenCalloutOptions.SectionName).Exists())
+            {
+                context.SirenCodeTranslations.RemoveRange(context.SirenCodeTranslations);
+                context.SirenCalloutSettings.RemoveRange(context.SirenCalloutSettings);
+            }
+            if (configuration.GetSection(SeverityOptions.SectionName).Exists())
+            {
+                context.SeverityTranslations.RemoveRange(context.SeverityTranslations);
+                context.SeveritySettings.RemoveRange(context.SeveritySettings);
+            }
+            if (configuration.GetSection(PatternOptions.SectionName).Exists())
+            {
+                context.AdditionalPatterns.RemoveRange(context.AdditionalPatterns);
+                context.PatternSettings.RemoveRange(context.PatternSettings);
+            }
+            if (configuration.GetSection(StatusOptions.SectionName).Exists())
+                context.StatusSettings.RemoveRange(context.StatusSettings);
+            if (configuration.GetSection(ConnectOptions.SectionName).Exists())
+            {
+                context.SubnetAddresses.RemoveRange(context.SubnetAddresses);
+                context.Sirens.RemoveRange(context.Sirens);
+                context.Sites.RemoveRange(context.Sites);
+            }
+            if (configuration.GetSection(TetraControlOptions.SectionName).Exists())
+                context.TetraControlSettings.RemoveRange(context.TetraControlSettings);
+            if (configuration.GetSection(ProgramOptions.SectionName).Exists())
+                context.ProgramSettings.RemoveRange(context.ProgramSettings);
             await context.SaveChangesAsync().ConfigureAwait(false);
 
             var sectionsImported = 0;
@@ -260,6 +288,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data
             if (ImportSection(SeedConnectOptions, context, configuration, logger)) sectionsImported++;
 
             await context.SaveChangesAsync().ConfigureAwait(false);
+            await transaction.CommitAsync().ConfigureAwait(false);
 
             if (sectionsImported == 0)
                 logger?.LogWarning("No settings sections found in appsettings.json. Nothing was imported.");
