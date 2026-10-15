@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 const { fetchSettings, updateSettings, loading, saving } = useSettings()
 
 interface ProgramSettings {
@@ -58,33 +59,34 @@ async function save() {
   await updateSettings('program', form.value)
 }
 
-const booleanFields: { key: keyof ProgramSettings; label: string; description?: string }[] = [
-  { key: 'sendVehicleStatus', label: 'Fahrzeugstatus senden', description: 'Fahrzeugstatus an Connect übertragen' },
-  { key: 'sendVehiclePositions', label: 'Fahrzeugpositionen senden', description: 'GPS-Positionen an Connect übertragen' },
-  { key: 'sendUserOperationStatus', label: 'Einsatzstatus senden', description: 'Benutzer-Einsatzstatus übertragen' },
-  { key: 'sendUserAvailability', label: 'Verfügbarkeit senden', description: 'Benutzerverfügbarkeit übertragen' },
-  { key: 'sendAlarms', label: 'Alarme senden', description: 'Alarme an Connect übertragen' },
-  { key: 'updateExistingOperations', label: 'Bestehende Einsätze aktualisieren' },
-  { key: 'ignoreStatus5', label: 'Status 5 ignorieren' },
-  { key: 'ignoreStatus0', label: 'Status 0 ignorieren' },
-  { key: 'ignoreStatus9', label: 'Status 9 ignorieren' },
-  { key: 'addPropertyForAlarmTexts', label: 'Eigenschaft für Alarmtexte hinzufügen' },
-  { key: 'useFullyQualifiedSubnetAddressForConnect', label: 'Vollqualifizierte Subnetzadresse verwenden' },
-  { key: 'ignoreAlarmWithoutSubnetAddresses', label: 'Alarme ohne Subnetzadressen ignorieren' },
-  { key: 'acceptCalloutsForSirens', label: 'Sirenen-Alarmierungen akzeptieren' },
-  { key: 'acceptSDSAsCalloutsWithPattern', label: 'SDS als Alarmierung mit Muster akzeptieren' }
-]
+const booleanFields = computed<{ key: keyof ProgramSettings; label: string; description?: string }[]>(() => [
+  { key: 'sendVehicleStatus', label: t('program.fields.sendVehicleStatus.label'), description: t('program.fields.sendVehicleStatus.description') },
+  { key: 'sendVehiclePositions', label: t('program.fields.sendVehiclePositions.label'), description: t('program.fields.sendVehiclePositions.description') },
+  { key: 'sendUserOperationStatus', label: t('program.fields.sendUserOperationStatus.label'), description: t('program.fields.sendUserOperationStatus.description') },
+  { key: 'sendUserAvailability', label: t('program.fields.sendUserAvailability.label'), description: t('program.fields.sendUserAvailability.description') },
+  { key: 'sendAlarms', label: t('program.fields.sendAlarms.label'), description: t('program.fields.sendAlarms.description') },
+  { key: 'updateExistingOperations', label: t('program.fields.updateExistingOperations.label') },
+  { key: 'ignoreStatus5', label: t('program.fields.ignoreStatus', { n: 5 }) },
+  { key: 'ignoreStatus0', label: t('program.fields.ignoreStatus', { n: 0 }) },
+  { key: 'ignoreStatus9', label: t('program.fields.ignoreStatus', { n: 9 }) },
+  { key: 'addPropertyForAlarmTexts', label: t('program.fields.addPropertyForAlarmTexts.label') },
+  { key: 'useFullyQualifiedSubnetAddressForConnect', label: t('program.fields.useFullyQualifiedSubnetAddressForConnect.label') },
+  { key: 'ignoreAlarmWithoutSubnetAddresses', label: t('program.fields.ignoreAlarmWithoutSubnetAddresses.label') },
+  { key: 'acceptCalloutsForSirens', label: t('program.fields.acceptCalloutsForSirens.label') },
+  { key: 'acceptSDSAsCalloutsWithPattern', label: t('program.fields.acceptSDSAsCalloutsWithPattern.label') }
+])
 </script>
 
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold">Programmoptionen</h1>
-        <p class="text-muted mt-1">Allgemeine Programmeinstellungen</p>
+        <h1 class="text-2xl font-bold">{{ t('nav.program') }}</h1>
+        <p class="text-muted mt-1">{{ t('program.subtitle') }}</p>
       </div>
       <UButton
-        label="Speichern"
+        :label="t('common.save')"
+        color="neutral"
         icon="i-lucide-save"
         :loading="saving"
         @click="save"
@@ -95,8 +97,12 @@ const booleanFields: { key: keyof ProgramSettings; label: string; description?: 
       <div class="flex gap-3">
         <UIcon name="i-lucide-info" class="w-5 h-5 text-primary shrink-0 mt-0.5" />
         <div class="text-sm text-muted">
-          <p>Hier legen Sie fest, welche Daten von TetraControl an Feuer Software Connect weitergeleitet werden. Sie können einzelne Funktionen wie Fahrzeugstatus, Positionsübertragung, Alarme oder Benutzerverfügbarkeit unabhängig voneinander aktivieren oder deaktivieren.</p>
-          <p class="mt-2">Unter <strong>Zahlenwerte</strong> und <strong>Zeitspannen</strong> können Sie Timeout- und Wiederholungsparameter anpassen. Der <strong>Heartbeat</strong> sendet regelmäßig ein Signal an eine konfigurierbare URL, um die Erreichbarkeit des Systems zu überwachen.</p>
+          <p>{{ t('program.info.dataForwarding') }}</p>
+          <i18n-t scope="global" keypath="program.info.parameters" tag="p" class="mt-2">
+            <template #numbers><strong>{{ t('program.info.numbersLabel') }}</strong></template>
+            <template #timespans><strong>{{ t('program.info.timespansLabel') }}</strong></template>
+            <template #heartbeat><strong>{{ t('program.info.heartbeatLabel') }}</strong></template>
+          </i18n-t>
         </div>
       </div>
     </UCard>
@@ -109,7 +115,7 @@ const booleanFields: { key: keyof ProgramSettings; label: string; description?: 
       <!-- Datenübertragung -->
       <UCard>
         <template #header>
-          <h2 class="font-semibold">Datenübertragung & Verhalten</h2>
+          <h2 class="font-semibold">{{ t('program.sections.dataTransfer') }}</h2>
         </template>
         <div class="space-y-4">
           <div v-for="field in booleanFields" :key="field.key" class="flex items-center justify-between">
@@ -125,19 +131,19 @@ const booleanFields: { key: keyof ProgramSettings; label: string; description?: 
       <!-- Zahlenwerte -->
       <UCard>
         <template #header>
-          <h2 class="font-semibold">Zahlenwerte</h2>
+          <h2 class="font-semibold">{{ t('program.sections.numbers') }}</h2>
         </template>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium mb-1">Verfügbarkeit Lebensdauer (Tage)</label>
+            <label class="block text-sm font-medium mb-1">{{ t('program.fields.userAvailabilityLifetimeDays') }}</label>
             <UInputNumber v-model="form.userAvailabilityLifetimeDays" :min="1" class="w-full" />
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">WebSocket Reconnect Timeout (Min.)</label>
+            <label class="block text-sm font-medium mb-1">{{ t('program.fields.webSocketReconnectTimeoutMinutes') }}</label>
             <UInputNumber v-model="form.webSocketReconnectTimeoutMinutes" :min="1" class="w-full" />
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Max. Wiederholungen vor Fallback</label>
+            <label class="block text-sm font-medium mb-1">{{ t('program.fields.fallbackMaxRetryCount') }}</label>
             <UInputNumber v-model="form.pollForActiveOperationBeforeFallbackMaxRetryCount" :min="0" class="w-full" />
           </div>
         </div>
@@ -146,19 +152,23 @@ const booleanFields: { key: keyof ProgramSettings; label: string; description?: 
       <!-- Zeitspannen und URLs -->
       <UCard>
         <template #header>
-          <h2 class="font-semibold">Zeitspannen & URLs</h2>
+          <h2 class="font-semibold">{{ t('program.sections.timespans') }}</h2>
         </template>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium mb-1">Fallback-Verzögerung (HH:MM:SS)</label>
+            <label class="block text-sm font-medium mb-1">{{ t('program.fields.fallbackDelay') }}</label>
             <UInput v-model="form.pollForActiveOperationBeforeFallbackDelay" placeholder="00:00:05" />
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Heartbeat-Intervall (HH:MM:SS)</label>
-            <UInput v-model="form.heartbeatInterval" placeholder="00:05:00 (leer = deaktiviert)" />
+            <label class="block text-sm font-medium mb-1">{{ t('program.fields.heartbeatInterval') }}</label>
+            <UInput
+              :model-value="form.heartbeatInterval ?? undefined"
+              :placeholder="t('program.fields.heartbeatIntervalPlaceholder')"
+              @update:model-value="form.heartbeatInterval = $event || null"
+            />
           </div>
           <div class="md:col-span-2">
-            <label class="block text-sm font-medium mb-1">Heartbeat Endpoint URL</label>
+            <label class="block text-sm font-medium mb-1">{{ t('program.fields.heartbeatEndpointUrl') }}</label>
             <UInput v-model="form.heartbeatEndpointUrl" placeholder="https://example.com/heartbeat" />
           </div>
         </div>
@@ -166,7 +176,8 @@ const booleanFields: { key: keyof ProgramSettings; label: string; description?: 
 
       <div class="flex justify-end">
         <UButton
-          label="Speichern"
+          :label="t('common.save')"
+          color="neutral"
           icon="i-lucide-save"
           :loading="saving"
           @click="save"

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 const { fetchSettings, updateSettings, loading, saving } = useSettings()
 
 interface SubnetAddress {
@@ -62,9 +63,11 @@ function removeSite(index: number) {
 }
 
 function addSubnetAddress(siteIndex: number) {
-  form.value.sites[siteIndex].subnetAddresses.push({
+  const site = form.value.sites[siteIndex]
+  if (!site) return
+  site.subnetAddresses.push({
     id: 0,
-    siteId: form.value.sites[siteIndex].id,
+    siteId: site.id,
     name: '',
     sna: '',
     alarmDirectly: false,
@@ -73,13 +76,15 @@ function addSubnetAddress(siteIndex: number) {
 }
 
 function removeSubnetAddress(siteIndex: number, subIndex: number) {
-  form.value.sites[siteIndex].subnetAddresses.splice(subIndex, 1)
+  form.value.sites[siteIndex]?.subnetAddresses.splice(subIndex, 1)
 }
 
 function addSiren(siteIndex: number) {
-  form.value.sites[siteIndex].sirens.push({
+  const site = form.value.sites[siteIndex]
+  if (!site) return
+  site.sirens.push({
     id: 0,
-    siteId: form.value.sites[siteIndex].id,
+    siteId: site.id,
     name: '',
     issi: '',
     expectedHeartbeatInterval: null
@@ -87,7 +92,7 @@ function addSiren(siteIndex: number) {
 }
 
 function removeSiren(siteIndex: number, sirenIndex: number) {
-  form.value.sites[siteIndex].sirens.splice(sirenIndex, 1)
+  form.value.sites[siteIndex]?.sirens.splice(sirenIndex, 1)
 }
 
 function toggleSite(index: number) {
@@ -113,18 +118,19 @@ function toggleKeyVisibility(index: number) {
   <div>
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold">Connect / Standorte</h1>
-        <p class="text-muted mt-1">Standorte, Subnetzadressen und Sirenen verwalten</p>
+        <h1 class="text-2xl font-bold">{{ t('nav.connect') }}</h1>
+        <p class="text-muted mt-1">{{ t('connect.subtitle') }}</p>
       </div>
       <div class="flex gap-2">
         <UButton
-          label="Standort hinzufügen"
+          :label="t('connect.addSite')"
           icon="i-lucide-plus"
-          variant="outline"
+          color="error"
           @click="addSite"
         />
         <UButton
-          label="Speichern"
+          :label="t('common.save')"
+          color="neutral"
           icon="i-lucide-save"
           :loading="saving"
           @click="save"
@@ -136,9 +142,14 @@ function toggleKeyVisibility(index: number) {
       <div class="flex gap-3">
         <UIcon name="i-lucide-info" class="w-5 h-5 text-primary shrink-0 mt-0.5" />
         <div class="text-sm text-muted">
-          <p>Verwalten Sie hier Ihre Feuer Software Connect Standorte. Jeder Standort repräsentiert eine Connect-Instanz mit eigenem API-Key.</p>
-          <p class="mt-2"><strong>Subnetzadressen (SNA)</strong> ordnen TETRA-Subnetze einem Standort zu. Wenn „Direkt alarmieren" aktiviert ist, werden Alarme sofort an diesen Standort weitergeleitet. Die <strong>GSSI</strong> ist die Gruppenadresse des Subnetzes.</p>
-          <p class="mt-1"><strong>Sirenen</strong> werden über ihre ISSI identifiziert. Optional kann ein Heartbeat-Intervall konfiguriert werden, um die Erreichbarkeit der Sirene zu überwachen.</p>
+          <p>{{ t('connect.info.sites') }}</p>
+          <i18n-t scope="global" keypath="connect.info.subnets" tag="p" class="mt-2">
+            <template #sna><strong>{{ t('connect.info.subnetsLabel') }}</strong></template>
+            <template #gssi><strong>GSSI</strong></template>
+          </i18n-t>
+          <i18n-t scope="global" keypath="connect.info.sirens" tag="p" class="mt-1">
+            <template #sirens><strong>{{ t('connect.info.sirensLabel') }}</strong></template>
+          </i18n-t>
         </div>
       </div>
     </UCard>
@@ -149,8 +160,8 @@ function toggleKeyVisibility(index: number) {
 
     <div v-else-if="form.sites.length === 0" class="text-center py-16">
       <UIcon name="i-lucide-building-2" class="w-12 h-12 text-muted mx-auto mb-4" />
-      <p class="text-muted mb-4">Keine Standorte konfiguriert</p>
-      <UButton label="Ersten Standort hinzufügen" icon="i-lucide-plus" @click="addSite" />
+      <p class="text-muted mb-4">{{ t('connect.noSites') }}</p>
+      <UButton :label="t('connect.addFirstSite')" icon="i-lucide-plus" @click="addSite" />
     </div>
 
     <div v-else class="space-y-4">
@@ -162,9 +173,9 @@ function toggleKeyVisibility(index: number) {
                 :name="expandedSites.has(siteIndex) ? 'i-lucide-chevron-down' : 'i-lucide-chevron-right'"
                 class="w-4 h-4"
               />
-              <span class="font-semibold">{{ site.name || `Standort ${siteIndex + 1}` }}</span>
+              <span class="font-semibold">{{ site.name || t('connect.siteFallbackName', { n: siteIndex + 1 }) }}</span>
               <UBadge variant="subtle" color="neutral" size="sm">
-                {{ site.subnetAddresses.length }} Subnetze, {{ site.sirens.length }} Sirenen
+                {{ t('connect.siteSummary', { subnets: site.subnetAddresses.length, sirens: site.sirens.length }) }}
               </UBadge>
             </button>
             <UButton
@@ -181,16 +192,16 @@ function toggleKeyVisibility(index: number) {
           <!-- Site basics -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium mb-1">Name</label>
-              <UInput v-model="site.name" placeholder="Standortname" />
+              <label class="block text-sm font-medium mb-1">{{ t('common.name') }}</label>
+              <UInput v-model="site.name" :placeholder="t('connect.fields.siteName')" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1">API-Key</label>
+              <label class="block text-sm font-medium mb-1">{{ t('connect.fields.apiKey') }}</label>
               <div class="flex gap-2">
                 <UInput
                   v-model="site.key"
                   :type="showKeys.has(siteIndex) ? 'text' : 'password'"
-                  placeholder="API-Key"
+                  :placeholder="t('connect.fields.apiKey')"
                   class="flex-1"
                 />
                 <UButton
@@ -207,9 +218,9 @@ function toggleKeyVisibility(index: number) {
           <!-- Subnet Addresses -->
           <div>
             <div class="flex items-center justify-between mb-3">
-              <h3 class="font-semibold text-sm">Subnetzadressen</h3>
+              <h3 class="font-semibold text-sm">{{ t('connect.subnets') }}</h3>
               <UButton
-                label="Hinzufügen"
+                :label="t('common.add')"
                 icon="i-lucide-plus"
                 variant="outline"
                 size="sm"
@@ -218,7 +229,7 @@ function toggleKeyVisibility(index: number) {
             </div>
 
             <div v-if="site.subnetAddresses.length === 0" class="text-sm text-muted py-4 text-center border border-dashed border-default rounded-lg">
-              Keine Subnetzadressen konfiguriert
+              {{ t('connect.noSubnets') }}
             </div>
 
             <div v-else class="space-y-3">
@@ -230,8 +241,8 @@ function toggleKeyVisibility(index: number) {
                 <div class="flex items-start gap-2">
                   <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div>
-                      <label class="block text-xs font-medium mb-1">Name</label>
-                      <UInput v-model="subnet.name" placeholder="Name" size="sm" />
+                      <label class="block text-xs font-medium mb-1">{{ t('common.name') }}</label>
+                      <UInput v-model="subnet.name" :placeholder="t('common.name')" size="sm" />
                     </div>
                     <div>
                       <label class="block text-xs font-medium mb-1">SNA</label>
@@ -243,7 +254,7 @@ function toggleKeyVisibility(index: number) {
                     </div>
                     <div class="flex items-end gap-2">
                       <div class="flex-1">
-                        <label class="block text-xs font-medium mb-1">Direkt alarmieren</label>
+                        <label class="block text-xs font-medium mb-1">{{ t('connect.fields.alarmDirectly') }}</label>
                         <USwitch v-model="subnet.alarmDirectly" />
                       </div>
                     </div>
@@ -266,9 +277,9 @@ function toggleKeyVisibility(index: number) {
           <!-- Sirens -->
           <div>
             <div class="flex items-center justify-between mb-3">
-              <h3 class="font-semibold text-sm">Sirenen</h3>
+              <h3 class="font-semibold text-sm">{{ t('connect.sirens') }}</h3>
               <UButton
-                label="Hinzufügen"
+                :label="t('common.add')"
                 icon="i-lucide-plus"
                 variant="outline"
                 size="sm"
@@ -277,7 +288,7 @@ function toggleKeyVisibility(index: number) {
             </div>
 
             <div v-if="site.sirens.length === 0" class="text-sm text-muted py-4 text-center border border-dashed border-default rounded-lg">
-              Keine Sirenen konfiguriert
+              {{ t('connect.noSirens') }}
             </div>
 
             <div v-else class="space-y-3">
@@ -289,16 +300,21 @@ function toggleKeyVisibility(index: number) {
                 <div class="flex items-start gap-2">
                   <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label class="block text-xs font-medium mb-1">Name</label>
-                      <UInput v-model="siren.name" placeholder="Sirenenname" size="sm" />
+                      <label class="block text-xs font-medium mb-1">{{ t('common.name') }}</label>
+                      <UInput v-model="siren.name" :placeholder="t('connect.fields.sirenName')" size="sm" />
                     </div>
                     <div>
                       <label class="block text-xs font-medium mb-1">ISSI</label>
                       <UInput v-model="siren.issi" placeholder="ISSI" size="sm" />
                     </div>
                     <div>
-                      <label class="block text-xs font-medium mb-1">Heartbeat-Intervall (HH:MM:SS)</label>
-                      <UInput v-model="siren.expectedHeartbeatInterval" placeholder="Leer = deaktiviert" size="sm" />
+                      <label class="block text-xs font-medium mb-1">{{ t('connect.fields.heartbeatInterval') }}</label>
+                      <UInput
+                        :model-value="siren.expectedHeartbeatInterval ?? undefined"
+                        :placeholder="t('connect.fields.heartbeatIntervalPlaceholder')"
+                        size="sm"
+                        @update:model-value="siren.expectedHeartbeatInterval = $event || null"
+                      />
                     </div>
                   </div>
                   <UButton
@@ -318,7 +334,8 @@ function toggleKeyVisibility(index: number) {
 
       <div class="flex justify-end">
         <UButton
-          label="Speichern"
+          :label="t('common.save')"
+          color="neutral"
           icon="i-lucide-save"
           :loading="saving"
           @click="save"

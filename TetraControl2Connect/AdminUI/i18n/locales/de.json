@@ -1,0 +1,496 @@
+{
+  "app": {
+    "title": "TetraControl2Connect",
+    "fullTitle": "TetraControl2Connect Admin",
+    "shortTitle": "TC2C Admin",
+    "admin": "Admin",
+    "copyright": "© {year} FeuerSoftware GmbH",
+    "openMenu": "Menü öffnen",
+    "language": "Sprache"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "program": "Programmoptionen",
+    "tetracontrol": "TetraControl",
+    "connect": "Connect / Standorte",
+    "status": "Status",
+    "pattern": "Muster (Pattern)",
+    "severity": "Schweregrade",
+    "sirenCallout": "Sirenen-Alarmierung",
+    "sirenStatus": "Sirenen-Status",
+    "backups": "Sicherungen",
+    "live": "Live-Ansicht",
+    "setup": "Ersteinrichtung"
+  },
+  "common": {
+    "save": "Speichern",
+    "add": "Hinzufügen",
+    "delete": "Löschen",
+    "remove": "Entfernen",
+    "cancel": "Abbrechen",
+    "name": "Name",
+    "error": "Fehler",
+    "loading": "Laden…"
+  },
+  "settings": {
+    "loadErrorTitle": "Fehler beim Laden",
+    "loadAllError": "Einstellungen konnten nicht geladen werden.",
+    "loadError": "{section} konnte nicht geladen werden.",
+    "savedTitle": "Gespeichert",
+    "saved": "{section} wurde erfolgreich gespeichert.",
+    "saveErrorTitle": "Fehler beim Speichern",
+    "saveError": "{section} konnte nicht gespeichert werden."
+  },
+  "dashboard": {
+    "subtitle": "Übersicht aller Einstellungsbereiche",
+    "configured": "Konfiguriert",
+    "notConfigured": "Nicht konfiguriert",
+    "sections": {
+      "program": "Allgemeine Programmeinstellungen",
+      "tetracontrol": "TetraControl Verbindungseinstellungen",
+      "connect": "Standorte, Subnetze und Sirenen",
+      "status": "Status-Zuordnungen",
+      "pattern": "Regex-Muster für Alarmauswertung",
+      "severity": "Schweregrad-Übersetzungen",
+      "sirenCallout": "Sirenen-Code Übersetzungen",
+      "sirenStatus": "Sirenen Fehler-Übersetzungen"
+    },
+    "update": {
+      "title": "Neue Version verfügbar: {version}",
+      "description": "Eine neue Version von TetraControl2Connect ist verfügbar. Bitte aktualisieren Sie die Anwendung, um von den neuesten Funktionen und Fehlerbehebungen zu profitieren.",
+      "download": "Herunterladen"
+    },
+    "setup": {
+      "title": "Ersteinrichtung erforderlich",
+      "description": "TetraControl und Connect sind noch nicht konfiguriert. Der Einrichtungsassistent führt Sie in wenigen Schritten durch die Grundkonfiguration.",
+      "start": "Einrichtung starten"
+    }
+  },
+  "live": {
+    "subtitle": "Echtzeit-Nachrichten von TetraControl",
+    "hubConnected": "Live-Verbindung aktiv",
+    "hubDisconnected": "Live-Verbindung getrennt",
+    "tetraControlConnected": "TetraControl verbunden",
+    "tetraControlDisconnected": "TetraControl getrennt",
+    "clear": "Leeren",
+    "waiting": "Warte auf Nachrichten...",
+    "unknownSource": "Unbekannt",
+    "statusValue": "Status: {status}",
+    "types": {
+      "status": "Status",
+      "position": "Position",
+      "callout": "Alarmierung"
+    }
+  },
+  "backups": {
+    "subtitle": "Wiederherstellungspunkte der Einstellungen",
+    "create": "Sicherung erstellen",
+    "restore": "Wiederherstellen",
+    "info": {
+      "automatic": "Bei jeder Änderung an den Einstellungen wird automatisch eine tägliche Sicherung erstellt (eine pro Tag). Zusätzlich können Sie jederzeit manuell eine Sicherung anlegen.",
+      "restore": "Über {action} können Sie alle Einstellungen auf den Stand eines früheren Zeitpunkts zurücksetzen. Die aktuelle Konfiguration wird dabei vollständig durch die gesicherten Werte ersetzt."
+    },
+    "empty": {
+      "title": "Keine Sicherungen vorhanden",
+      "description": "Sicherungen werden automatisch erstellt, sobald Sie Einstellungen ändern."
+    },
+    "descriptions": {
+      "automatic": "Automatische Sicherung",
+      "automaticBeforeImport": "Automatische Sicherung vor Import",
+      "manual": "Manuelle Sicherung"
+    },
+    "loadErrorTitle": "Fehler beim Laden",
+    "loadError": "Sicherungen konnten nicht geladen werden.",
+    "createdTitle": "Sicherung erstellt",
+    "created": "Eine manuelle Sicherung wurde erfolgreich erstellt.",
+    "createError": "Sicherung konnte nicht erstellt werden.",
+    "restoredTitle": "Wiederhergestellt",
+    "restored": "Die Einstellungen wurden erfolgreich wiederhergestellt.",
+    "restoreError": "Wiederherstellung fehlgeschlagen.",
+    "deletedTitle": "Gelöscht",
+    "deleted": "Die Sicherung wurde gelöscht.",
+    "deleteError": "Sicherung konnte nicht gelöscht werden."
+  },
+  "dictionary": {
+    "options": "Optionen",
+    "keyLabel": "Schlüssel",
+    "valueLabel": "Übersetzung",
+    "empty": "Keine Übersetzungen konfiguriert"
+  },
+  "severity": {
+    "description": "Schweregrad-Übersetzungen konfigurieren",
+    "info": "Übersetzen Sie hier die Schweregrade (Severity) aus den TETRA-Alarmmeldungen in verständliche Bezeichnungen für Feuer Software Connect.",
+    "infoDetail": "Der {key} ist der Schweregrad-Wert aus der TETRA-Nachricht, die {value} ist der Text, der in Connect angezeigt wird. Optional kann die Übersetzung auch als Einsatz-Stichwort verwendet werden.",
+    "useAsKeyword": "Schweregrad-Übersetzung als Stichwort verwenden",
+    "useAsKeywordHint": "Übersetzte Schweregrade werden als Einsatz-Stichwort genutzt",
+    "translations": "Übersetzungen",
+    "newKey": "Neuer Schlüssel"
+  },
+  "sirenCallout": {
+    "description": "Sirenen-Code Übersetzungen konfigurieren",
+    "info": "Konfigurieren Sie hier die Übersetzung von Sirenen-Alarmierungscodes. Wenn eine Sirene einen Alarmierungscode empfängt, wird dieser anhand der konfigurierten Übersetzungen in einen verständlichen Text umgewandelt.",
+    "infoDetail": "Der {key} ist der numerische Code aus der TETRA-Nachricht, die {value} ist der Text, der in Connect angezeigt wird. Optional kann die Übersetzung als Einsatz-Stichwort verwendet werden.",
+    "useAsKeyword": "Sirenen-Code Übersetzung als Stichwort verwenden",
+    "useAsKeywordHint": "Übersetzte Sirenen-Codes werden als Einsatz-Stichwort genutzt",
+    "translations": "Sirenen-Code Übersetzungen",
+    "keyLabel": "Sirenen-Code",
+    "newKey": "Neuer Code"
+  },
+  "sirenStatus": {
+    "description": "Sirenen Fehler-Übersetzungen konfigurieren",
+    "info": "Übersetzen Sie hier die Fehler-Codes, die Sirenen bei Störungen melden. Diese Übersetzungen helfen dabei, technische Fehlercodes in verständliche Beschreibungen für Feuer Software Connect umzuwandeln.",
+    "infoDetail": "Der {key} ist der numerische Code aus der Sirenen-Statusmeldung, die {value} ist die Fehlerbeschreibung, die in Connect als Störungsmeldung angezeigt wird.",
+    "translations": "Fehler-Übersetzungen",
+    "keyLabel": "Fehler-Code",
+    "newKey": "Neuer Fehler-Code"
+  },
+  "pattern": {
+    "subtitle": "Regex-Muster für die Alarm-Auswertung",
+    "intro": {
+      "text": "Definiere hier die regulären Ausdrücke (Regex), mit denen Informationen aus TETRA-Alarmmeldungen (SDS) extrahiert werden. Jedes Feld benötigt ein Regex-Muster, das den gewünschten Wert aus dem Alarmtext herausfiltert.",
+      "usage": "Verwende {namedGroups} wie {example}, um den extrahierten Wert zu kennzeichnen. Du kannst deine Muster direkt mit dem {tester} überprüfen oder dir über die {aiHelp} Vorschläge generieren lassen.",
+      "namedGroups": "benannte Capture-Gruppen",
+      "tester": "Regex-Tester",
+      "aiHelp": "AI-Hilfe"
+    },
+    "tester": {
+      "title": "Regex-Tester",
+      "sampleLabel": "Beispiel-Alarmtext",
+      "samplePlaceholder": "Füge hier einen Beispiel-Alarmtext ein, um die Muster zu testen...",
+      "sampleHint": "Dieser Text wird zum Testen aller Muster und für die AI-Hilfe verwendet. Klicke auf das Reagenzglas-Symbol neben einem Muster, um das Ergebnis zu sehen."
+    },
+    "standardPatterns": "Standard-Muster",
+    "testPattern": "Muster testen",
+    "aiHelp": "AI-Hilfe",
+    "patternPlaceholder": "Regex-Muster eingeben",
+    "invalidRegex": "Ungültiger regulärer Ausdruck",
+    "noPattern": "Kein Muster eingetragen.",
+    "invalidPatternCannotTest": "Das Muster ist ungültig und kann nicht getestet werden.",
+    "matchFound": "Treffer gefunden",
+    "match": "Treffer",
+    "noMatch": "Kein Treffer",
+    "captureGroups": "Capture-Gruppen:",
+    "fields": {
+      "numberPattern": {
+        "label": "Einsatznummer",
+        "hint": "z.B. eine fortlaufende Nummer wie \"E2024-001234\""
+      },
+      "keywordPattern": {
+        "label": "Stichwort",
+        "hint": "z.B. \"B3\" oder \"THL1\""
+      },
+      "factsPattern": {
+        "label": "Sachverhalt",
+        "hint": "Freitext-Beschreibung des Einsatzes"
+      },
+      "reporterNamePattern": {
+        "label": "Meldername",
+        "hint": "Name des Meldenden"
+      },
+      "reporterPhoneNumberPattern": {
+        "label": "Melder-Telefonnummer",
+        "hint": "Telefonnummer des Meldenden"
+      },
+      "cityPattern": {
+        "label": "Stadt",
+        "hint": "Ortsname des Einsatzortes"
+      },
+      "streetPattern": {
+        "label": "Straße",
+        "hint": "Straßenname des Einsatzortes"
+      },
+      "houseNumberPattern": {
+        "label": "Hausnummer",
+        "hint": "Hausnummer am Einsatzort"
+      },
+      "zipCodePattern": {
+        "label": "PLZ",
+        "hint": "Postleitzahl des Einsatzortes"
+      },
+      "districtPattern": {
+        "label": "Ortsteil",
+        "hint": "Ortsteil oder Stadtteil"
+      },
+      "latitudePattern": {
+        "label": "Breitengrad",
+        "hint": "Geografische Breite (Dezimalgrad)"
+      },
+      "longitudePattern": {
+        "label": "Längengrad",
+        "hint": "Geografische Länge (Dezimalgrad)"
+      },
+      "ricPattern": {
+        "label": "RIC",
+        "hint": "Radio Identification Code"
+      }
+    },
+    "additional": {
+      "title": "Zusätzliche Eigenschaften",
+      "empty": "Keine zusätzlichen Eigenschaften konfiguriert",
+      "namePlaceholder": "Eigenschaftsname",
+      "patternLabel": "Muster (Regex)",
+      "patternPlaceholder": "Regex-Muster",
+      "fallbackName": "Zusätzliche Eigenschaft"
+    },
+    "ai": {
+      "title": "AI-Regex-Hilfe",
+      "field": "Feld: {field}",
+      "sampleLabel": "Beispiel-Alarmtext",
+      "expectedValue": "Erwarteter Wert",
+      "expectedValueDescription": "Welcher Wert soll für „{field}“ aus dem Beispieltext extrahiert werden?",
+      "expectedValuePlaceholder": "z.B. den konkreten Wert aus dem Beispieltext oben hier einfügen",
+      "currentPattern": "Aktuelles Muster",
+      "privacy": "Ich bestätige, dass der Beispieltext {noSensitiveData} enthält. Der Text wird an einen externen AI-Dienst übermittelt.",
+      "noSensitiveData": "keine vertraulichen oder datenschutzrelevanten Daten",
+      "copyPrompt": "Prompt kopieren",
+      "openChatGpt": "ChatGPT öffnen",
+      "promptCopiedTitle": "Prompt kopiert",
+      "promptCopiedDescription": "Füge den Prompt in dein bevorzugtes AI-Tool ein (z.B. Gemini, Claude, Copilot).",
+      "copiedTitle": "Kopiert",
+      "copiedDescription": "AI-Prompt wurde in die Zwischenablage kopiert.",
+      "prompt": {
+        "intro": "Ich brauche einen regulären Ausdruck (Regex), der einen bestimmten Wert aus einer TETRA-Funkalarmnachricht (SDS) extrahiert.",
+        "taskHeading": "Aufgabe",
+        "task": "Erstelle ein Regex-Muster, das den Wert für das Feld „{field}\" aus dem folgenden Alarmtext extrahiert.",
+        "sampleHeading": "Beispiel-Alarmtext",
+        "expectedHeading": "Gesuchter Wert",
+        "expected": "Im Beispieltext ist der Wert für „{field}\": {value}",
+        "structureHeading": "Wichtige Hinweise zur Nachrichtenstruktur",
+        "structureSeparators": "Der Alarmtext folgt einem festen Aufbau mit Trennzeichen (z.B. Zeilenumbrüche, Semikolons, Tabs oder andere Separatoren)",
+        "structureExample": "Der angegebene Wert „{value}\" ist nur ein Beispiel aus dieser konkreten Nachricht. In anderen Nachrichten steht an derselben Position ein anderer Wert (z.B. statt „{value}\" könnte dort auch ein komplett anderer Text stehen)",
+        "structurePosition": "Das Muster muss die **Position des Wertes innerhalb der Nachrichtenstruktur** erkennen, nicht den konkreten Wert selbst",
+        "structureOrientation": "Orientiere dich an den umgebenden Trennzeichen, Schlüsselwörtern oder der Feldposition, um den richtigen Abschnitt zu treffen",
+        "existingHeading": "Bestehendes Muster (zur Verbesserung)",
+        "requirementsHeading": "Technische Anforderungen",
+        "requirementSyntax": "Regex-Syntax: {syntax}",
+        "requirementNamedGroup": "Verwende eine benannte Capture-Gruppe: {group}",
+        "requirementRobust": "Das Muster soll robust sein und auch bei leicht abweichenden Werten an derselben Position matchen",
+        "requirementOutput": "Gib nur das fertige Regex-Muster zurück, ohne Code-Blöcke oder Erklärung"
+      }
+    }
+  },
+  "connect": {
+    "subtitle": "Standorte, Subnetzadressen und Sirenen verwalten",
+    "addSite": "Standort hinzufügen",
+    "addFirstSite": "Ersten Standort hinzufügen",
+    "noSites": "Keine Standorte konfiguriert",
+    "siteFallbackName": "Standort {n}",
+    "siteSummary": "{subnets} Subnetze, {sirens} Sirenen",
+    "subnets": "Subnetzadressen",
+    "noSubnets": "Keine Subnetzadressen konfiguriert",
+    "sirens": "Sirenen",
+    "noSirens": "Keine Sirenen konfiguriert",
+    "info": {
+      "sites": "Verwalten Sie hier Ihre Feuer Software Connect Standorte. Jeder Standort repräsentiert eine Connect-Instanz mit eigenem API-Key.",
+      "subnets": "{sna} ordnen TETRA-Subnetze einem Standort zu. Wenn „Direkt alarmieren\" aktiviert ist, werden Alarme sofort an diesen Standort weitergeleitet. Die {gssi} ist die Gruppenadresse des Subnetzes.",
+      "subnetsLabel": "Subnetzadressen (SNA)",
+      "sirens": "{sirens} werden über ihre ISSI identifiziert. Optional kann ein Heartbeat-Intervall konfiguriert werden, um die Erreichbarkeit der Sirene zu überwachen.",
+      "sirensLabel": "Sirenen"
+    },
+    "fields": {
+      "siteName": "Standortname",
+      "apiKey": "API-Key",
+      "alarmDirectly": "Direkt alarmieren",
+      "sirenName": "Sirenenname",
+      "heartbeatInterval": "Heartbeat-Intervall (HH:MM:SS)",
+      "heartbeatIntervalPlaceholder": "Leer = deaktiviert"
+    }
+  },
+  "tetracontrol": {
+    "subtitle": "Verbindungseinstellungen zum TetraControl-Server",
+    "connection": "Verbindung",
+    "info": {
+      "connection": "Konfiguriere hier die Verbindung zum TetraControl-Server. TetraControl2Connect verbindet sich per WebSocket mit TetraControl und empfängt in Echtzeit Status-, Positions- und SDS-Nachrichten.",
+      "host": "Gib die IP-Adresse oder den Hostnamen des TetraControl-Servers sowie den WebSocket-Port an."
+    },
+    "fields": {
+      "host": "Host",
+      "hostPlaceholder": "z.B. 192.168.1.100",
+      "port": "Port",
+      "username": "Benutzername",
+      "password": "Passwort"
+    }
+  },
+  "program": {
+    "subtitle": "Allgemeine Programmeinstellungen",
+    "info": {
+      "dataForwarding": "Hier legen Sie fest, welche Daten von TetraControl an Feuer Software Connect weitergeleitet werden. Sie können einzelne Funktionen wie Fahrzeugstatus, Positionsübertragung, Alarme oder Benutzerverfügbarkeit unabhängig voneinander aktivieren oder deaktivieren.",
+      "parameters": "Unter {numbers} und {timespans} können Sie Timeout- und Wiederholungsparameter anpassen. Der {heartbeat} sendet regelmäßig ein Signal an eine konfigurierbare URL, um die Erreichbarkeit des Systems zu überwachen.",
+      "numbersLabel": "Zahlenwerte",
+      "timespansLabel": "Zeitspannen",
+      "heartbeatLabel": "Heartbeat"
+    },
+    "sections": {
+      "dataTransfer": "Datenübertragung & Verhalten",
+      "numbers": "Zahlenwerte",
+      "timespans": "Zeitspannen & URLs"
+    },
+    "fields": {
+      "sendVehicleStatus": {
+        "label": "Fahrzeugstatus senden",
+        "description": "Fahrzeugstatus an Connect übertragen"
+      },
+      "sendVehiclePositions": {
+        "label": "Fahrzeugpositionen senden",
+        "description": "GPS-Positionen an Connect übertragen"
+      },
+      "sendUserOperationStatus": {
+        "label": "Einsatzstatus senden",
+        "description": "Benutzer-Einsatzstatus übertragen"
+      },
+      "sendUserAvailability": {
+        "label": "Verfügbarkeit senden",
+        "description": "Benutzerverfügbarkeit übertragen"
+      },
+      "sendAlarms": {
+        "label": "Alarme senden",
+        "description": "Alarme an Connect übertragen"
+      },
+      "updateExistingOperations": {
+        "label": "Bestehende Einsätze aktualisieren"
+      },
+      "ignoreStatus": "Status {n} ignorieren",
+      "addPropertyForAlarmTexts": {
+        "label": "Eigenschaft für Alarmtexte hinzufügen"
+      },
+      "useFullyQualifiedSubnetAddressForConnect": {
+        "label": "Vollqualifizierte Subnetzadresse verwenden"
+      },
+      "ignoreAlarmWithoutSubnetAddresses": {
+        "label": "Alarme ohne Subnetzadressen ignorieren"
+      },
+      "acceptCalloutsForSirens": {
+        "label": "Sirenen-Alarmierungen akzeptieren"
+      },
+      "acceptSDSAsCalloutsWithPattern": {
+        "label": "SDS als Alarmierung mit Muster akzeptieren"
+      },
+      "userAvailabilityLifetimeDays": "Verfügbarkeit Lebensdauer (Tage)",
+      "webSocketReconnectTimeoutMinutes": "WebSocket Reconnect Timeout (Min.)",
+      "fallbackMaxRetryCount": "Max. Wiederholungen vor Fallback",
+      "fallbackDelay": "Fallback-Verzögerung (HH:MM:SS)",
+      "heartbeatInterval": "Heartbeat-Intervall (HH:MM:SS)",
+      "heartbeatIntervalPlaceholder": "00:05:00 (leer = deaktiviert)",
+      "heartbeatEndpointUrl": "Heartbeat Endpoint URL"
+    }
+  },
+  "status": {
+    "subtitle": "Status-Zuordnungen für Einsatzkräfte",
+    "mappings": "Status-Zuordnungen",
+    "info": {
+      "definition": "Definieren Sie hier die TETRA-Statuswerte, die den verschiedenen Verfügbarkeits-Zuständen in Feuer Software Connect entsprechen.",
+      "matching": "Wenn ein Benutzer seinen Status am TETRA-Funkgerät ändert, wird der numerische Statuswert mit dieser Tabelle abgeglichen und der entsprechende Verfügbarkeitsstatus an Connect übertragen. Tragen Sie die Statusnummern als kommagetrennte Werte ein (z.B. „1,2\")."
+    },
+    "fields": {
+      "availableStatus": {
+        "label": "Verfügbar",
+        "description": "Status-Wert für verfügbare Einsatzkräfte"
+      },
+      "limitedAvailableStatus": {
+        "label": "Eingeschränkt verfügbar",
+        "description": "Status-Wert für eingeschränkt verfügbare Einsatzkräfte"
+      },
+      "notAvailableStatus": {
+        "label": "Nicht verfügbar",
+        "description": "Status-Wert für nicht verfügbare Einsatzkräfte"
+      },
+      "comingStatus": {
+        "label": "Kommt",
+        "description": "Status-Wert für zugesagte Einsatzkräfte"
+      },
+      "notComingStatus": {
+        "label": "Kommt nicht",
+        "description": "Status-Wert für absagende Einsatzkräfte"
+      },
+      "comingLaterStatus": {
+        "label": "Kommt später",
+        "description": "Status-Wert für verzögert zugesagte Einsatzkräfte"
+      }
+    }
+  },
+  "setup": {
+    "subtitle": "Einrichtungsassistent",
+    "next": "Weiter",
+    "back": "Zurück",
+    "skip": "Einrichtung überspringen →",
+    "steps": {
+      "welcome": "Willkommen",
+      "connect": "Connect",
+      "options": "Optionen",
+      "summary": "Fertig"
+    },
+    "welcome": {
+      "title": "Willkommen bei TetraControl2Connect!",
+      "intro": "Dieser Assistent führt dich durch die Ersteinrichtung. In wenigen Schritten verbindest du TetraControl mit Feuer Software Connect.",
+      "tetracontrolHint": "Verbindung einrichten",
+      "connectHint": "Standort konfigurieren",
+      "optionsHint": "Datenübertragung wählen"
+    },
+    "tetracontrol": {
+      "title": "TetraControl-Verbindung",
+      "description": "Konfiguriere die WebSocket-Verbindung zum TetraControl-Server.",
+      "hostLabel": "Host",
+      "hostDescription": "IP-Adresse oder Hostname des TetraControl-Servers",
+      "hostPlaceholder": "z.B. 192.168.1.100",
+      "portLabel": "Port",
+      "portDescription": "Standard: 8085",
+      "usernameLabel": "Benutzername",
+      "passwordLabel": "Passwort"
+    },
+    "connect": {
+      "title": "Erster Connect-Standort",
+      "description": "Füge deinen ersten Feuer Software Connect-Standort hinzu. Weitere Standorte kannst du später in den Einstellungen ergänzen.",
+      "siteNameLabel": "Standortname",
+      "siteNameDescription": "Ein beschreibender Name für den Standort",
+      "siteNamePlaceholder": "z.B. Feuerwehr Musterstadt",
+      "apiKeyLabel": "API-Schlüssel",
+      "apiKeyPlaceholder": "API-Key aus Feuer Software Connect",
+      "apiKeyDescription": "Den API-Schlüssel findest du im {portal} unter „Öffentliche Connect-Schnittstelle\".",
+      "portalLink": "Connect-Portal",
+      "info": "Jeder Standort benötigt einen eigenen API-Schlüssel aus Feuer Software Connect. Subnetz-Adressen (SNA/GSSI) und Sirenen kannst du anschließend in den Detail-Einstellungen konfigurieren."
+    },
+    "options": {
+      "description": "Wähle, welche Daten an Connect übertragen werden sollen.",
+      "vehiclePositions": "Fahrzeugpositionen",
+      "vehiclePositionsHint": "GPS-Positionen der Fahrzeuge",
+      "vehicleStatus": "Fahrzeugstatus",
+      "vehicleStatusHint": "Status-Änderungen (z.B. Status 1-6)",
+      "userAvailability": "Verfügbarkeit",
+      "userAvailabilityHint": "Verfügbarkeitsstatus der Einsatzkräfte",
+      "userOperationStatus": "Einsatzstatus",
+      "userOperationStatusHint": "Benutzer-Einsatzstatus übertragen",
+      "alarms": "Alarme (SDS)",
+      "alarmsHint": "Alarmierungen aus SDS-Nachrichten",
+      "alarmsWarning": "{important} Damit Einsätze aus SDS-Nachrichten korrekt erkannt und an Connect übertragen werden, musst du nach der Ersteinrichtung unter {pattern} die passenden Regex-Muster konfigurieren.",
+      "alarmsWarningImportant": "Wichtig für Alarme (SDS):",
+      "alarmsWarningDetails": "Diese Muster bestimmen, wie Einsatznummer, Stichwort, Adresse und weitere Informationen aus dem Alarmtext extrahiert werden. Ohne konfigurierte Muster können empfangene Alarme nicht ausgewertet werden."
+    },
+    "summary": {
+      "title": "Zusammenfassung",
+      "description": "Überprüfe deine Einstellungen und speichere die Konfiguration.",
+      "user": "Benutzer",
+      "connectSite": "Connect-Standort",
+      "site": "Standort",
+      "dataTransfer": "Datenübertragung",
+      "alarms": "Alarme",
+      "noData": "Keine Daten aktiviert",
+      "saveConfiguration": "Konfiguration speichern"
+    },
+    "completed": {
+      "title": "Einrichtung abgeschlossen!",
+      "description": "Die Grundkonfiguration wurde gespeichert. Du kannst nun weitere Einstellungen vornehmen oder zur Übersicht zurückkehren.",
+      "nextSteps": "Nächste Schritte",
+      "nextStepPattern": "Regex-Muster konfigurieren, damit Alarme aus SDS-Nachrichten ausgewertet werden können (Einsatznummer, Stichwort, Adresse, etc.)",
+      "subnetAddresses": "Subnetz-Adressen",
+      "nextStepSubnetAddresses": "SNA/GSSI-Zuordnungen für den Standort ergänzen",
+      "statusMappings": "Status-Zuordnungen",
+      "nextStepStatusMappings": "TETRA-Statuscodes den Connect-Status-Werten zuordnen",
+      "configurePattern": "Muster konfigurieren",
+      "toDashboard": "Zum Dashboard"
+    },
+    "toast": {
+      "completedTitle": "Einrichtung abgeschlossen",
+      "completedDescription": "Alle Einstellungen wurden gespeichert. Du kannst die Konfiguration jederzeit über die Einstellungsseiten anpassen."
+    }
+  }
+}

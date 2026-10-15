@@ -103,7 +103,7 @@ test.describe('Navigation', () => {
     await expect(mobileHeader.getByText('TetraControl2Connect Admin')).toBeVisible()
 
     // Click the menu toggle button to open drawer
-    await mobileHeader.getByRole('button').click()
+    await mobileHeader.getByRole('button', { name: 'Menü öffnen' }).click()
 
     // Mobile drawer aside should appear with TC2C Admin heading
     const drawerAside = page.locator('aside').filter({ hasText: 'TC2C Admin' })

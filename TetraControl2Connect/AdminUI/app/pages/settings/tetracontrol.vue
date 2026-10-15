@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 const { fetchSettings, updateSettings, loading, saving } = useSettings()
 
 interface TetraControlSettings {
@@ -33,11 +34,12 @@ async function save() {
   <div>
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold">TetraControl</h1>
-        <p class="text-muted mt-1">Verbindungseinstellungen zum TetraControl-Server</p>
+        <h1 class="text-2xl font-bold">{{ t('nav.tetracontrol') }}</h1>
+        <p class="text-muted mt-1">{{ t('tetracontrol.subtitle') }}</p>
       </div>
       <UButton
-        label="Speichern"
+        :label="t('common.save')"
+        color="neutral"
         icon="i-lucide-save"
         :loading="saving"
         @click="save"
@@ -48,8 +50,8 @@ async function save() {
       <div class="flex gap-3">
         <UIcon name="i-lucide-info" class="w-5 h-5 text-primary shrink-0 mt-0.5" />
         <div class="text-sm text-muted">
-          <p>Konfiguriere hier die Verbindung zum TetraControl-Server. TetraControl2Connect verbindet sich per WebSocket mit TetraControl und empfängt in Echtzeit Status-, Positions- und SDS-Nachrichten.</p>
-          <p class="mt-2">Gib die IP-Adresse oder den Hostnamen des TetraControl-Servers sowie den WebSocket-Port an.</p>
+          <p>{{ t('tetracontrol.info.connection') }}</p>
+          <p class="mt-2">{{ t('tetracontrol.info.host') }}</p>
         </div>
       </div>
     </UCard>
@@ -61,27 +63,27 @@ async function save() {
     <div v-else>
       <UCard>
         <template #header>
-          <h2 class="font-semibold">Verbindung</h2>
+          <h2 class="font-semibold">{{ t('tetracontrol.connection') }}</h2>
         </template>
         <div class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <UFormField label="Host">
-              <UInput v-model="form.tetraControlHost" placeholder="z.B. 192.168.1.100" class="w-full" />
+            <UFormField :label="t('tetracontrol.fields.host')">
+              <UInput v-model="form.tetraControlHost" :placeholder="t('tetracontrol.fields.hostPlaceholder')" class="w-full" />
             </UFormField>
-            <UFormField label="Port">
+            <UFormField :label="t('tetracontrol.fields.port')">
               <UInput v-model.number="form.tetraControlPort" type="number" min="1" max="65535" class="w-full" />
             </UFormField>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <UFormField label="Benutzername">
-              <UInput v-model="form.tetraControlUsername" placeholder="Benutzername" class="w-full" />
+            <UFormField :label="t('tetracontrol.fields.username')">
+              <UInput v-model="form.tetraControlUsername" :placeholder="t('tetracontrol.fields.username')" class="w-full" />
             </UFormField>
-            <UFormField label="Passwort">
+            <UFormField :label="t('tetracontrol.fields.password')">
               <div class="flex gap-2 w-full">
                 <UInput
                   v-model="form.tetraControlPassword"
                   :type="showPassword ? 'text' : 'password'"
-                  placeholder="Passwort"
+                  :placeholder="t('tetracontrol.fields.password')"
                   class="flex-1"
                 />
                 <UButton
@@ -97,7 +99,8 @@ async function save() {
 
       <div class="flex justify-end mt-6">
         <UButton
-          label="Speichern"
+          :label="t('common.save')"
+          color="neutral"
           icon="i-lucide-save"
           :loading="saving"
           @click="save"
