@@ -13,6 +13,41 @@ const backups = ref<Backup[]>([])
 const loading = ref(false)
 const restoring = ref<number | null>(null)
 const creating = ref(false)
+const importFile = ref<File | null>(null)
+const importing = ref(false)
+const importConfirmed = ref(false)
+
+function selectImportFile(event: Event) {
+  importFile.value = (event.target as HTMLInputElement).files?.[0] ?? null
+  importConfirmed.value = false
+}
+
+async function importSettings() {
+  if (!importFile.value || !importConfirmed.value) return
+  importing.value = true
+  try {
+    await $fetch(`${apiBase}/settings/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: await importFile.value.text()
+    })
+    importConfirmed.value = false
+    toast.add({
+      title: 'Einstellungen importiert',
+      description: 'Bitte starten Sie die Anwendung neu, damit alle Dienste die importierten Einstellungen verwenden.',
+      color: 'success'
+    })
+    await fetchBackups()
+  } catch (e: any) {
+    toast.add({
+      title: 'Import fehlgeschlagen',
+      description: e?.data?.message || 'Bitte prüfen Sie die appsettings.json. Die Einstellungen wurden nicht geändert.',
+      color: 'error'
+    })
+  } finally {
+    importing.value = false
+  }
+}
 
 async function fetchBackups() {
   loading.value = true
@@ -126,6 +161,35 @@ onMounted(fetchBackups)
           <p class="mt-2">Über <strong>Wiederherstellen</strong> können Sie alle Einstellungen auf den Stand eines früheren Zeitpunkts zurücksetzen. Die aktuelle Konfiguration wird dabei vollständig durch die gesicherten Werte ersetzt.</p>
         </div>
       </div>
+    </UCard>
+
+    <UCard class="mb-6">
+      <h2 class="font-semibold mb-2">appsettings.json importieren</h2>
+      <p class="text-sm text-muted mb-4">
+        Wählen Sie Ihre bisherige appsettings.json aus. Enthaltene Einstellungsbereiche werden vollständig ersetzt;
+        nicht enthaltene Bereiche bleiben erhalten. Vor dem Import wird automatisch eine Sicherung erstellt.
+        Anschließend ist ein Neustart der Anwendung erforderlich.
+      </p>
+      <input
+        type="file"
+        accept=".json,application/json"
+        aria-label="appsettings.json auswählen"
+        :disabled="importing"
+        @change="selectImportFile"
+      >
+      <UCheckbox
+        v-model="importConfirmed"
+        label="Enthaltene Einstellungsbereiche mit den Werten aus der Datei ersetzen"
+        :disabled="!importFile || importing"
+        class="my-4"
+      />
+      <UButton
+        label="Datei importieren"
+        icon="i-lucide-upload"
+        :disabled="!importFile || !importConfirmed"
+        :loading="importing"
+        @click="importSettings"
+      />
     </UCard>
 
     <div v-if="loading" class="flex items-center justify-center py-20">

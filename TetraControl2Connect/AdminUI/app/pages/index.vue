@@ -93,6 +93,18 @@ const needsSetup = computed(() => {
       </UCard>
 
       <!-- Setup banner -->
+      <UCard v-if="allSettings.length > 0 && !sectionExists('connect')" class="mb-6 ring-2 ring-warning">
+        <h3 class="font-semibold">Keine Standorte konfiguriert</h3>
+        <p class="text-sm text-muted mt-1">
+          Auch bei bestehender TetraControl-Verbindung werden ohne Connect-Standorte keine Daten übertragen.
+          Fügen Sie Standorte hinzu oder importieren Sie Ihre bisherige appsettings.json unter Sicherungen.
+        </p>
+        <div class="flex gap-2 mt-3">
+          <UButton label="Standorte konfigurieren" to="/settings/connect" />
+          <UButton label="Konfiguration importieren" to="/backups" variant="soft" />
+        </div>
+      </UCard>
+
       <UCard v-if="needsSetup" class="mb-6 ring-2 ring-primary">
         <div class="flex items-center gap-4">
           <div class="p-3 rounded-full bg-primary/10">
