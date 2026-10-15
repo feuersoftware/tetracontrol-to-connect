@@ -59,6 +59,9 @@ public class DatabaseConfigurationProviderTest
     [InlineData("""{"Logging":{"LogLevel":{"Default":"Information"}}}""", true)]
     [InlineData("""{"ProgramOptions":"invalid","ConnectOptions":{"Sites":[]}}""", true)]
     [InlineData("""{"ProgramOptions":{"SendVehicleStatus":"invalid"},"ConnectOptions":{"Sites":[]}}""", false)]
+    [InlineData("""{"ProgramOptions":{"HeartbeatInterval":"invalid"}}""", false)]
+    [InlineData("""{"ProgramOptions":{"PollForActiveOperationBeforeFallbackDelay":"invalid"}}""", false)]
+    [InlineData("""{"ConnectOptions":{"Sites":[{"Name":"Site","Key":"test-value","Sirens":[{"ExpectedHeartbeatInterval":"invalid"}]}]}}""", false)]
     public async Task ImportFromConfiguration_InvalidSource_DoesNotChangeDatabase(string json, bool noSections)
     {
         using var connection = new SqliteConnection("Data Source=:memory:");
@@ -104,5 +107,25 @@ public class DatabaseConfigurationProviderTest
         (await db.TetraControlSettings.SingleAsync()).TetraControlHost.Should().Be("imported-host");
         (await db.TetraControlSettings.SingleAsync()).TetraControlPort.Should().Be(8080);
         (await db.Sites.SingleAsync()).Name.Should().Be("Existing site");
+    }
+
+    [Fact]
+    public async Task ImportFromConfiguration_EmptyConnectSection_ClearsSitesButPreservesOtherSettings()
+    {
+        using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        await using var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseSqlite(connection).Options);
+        await db.Database.EnsureCreatedAsync();
+        await DatabaseConfigurationProvider.SeedDefaults(db);
+        db.Sites.Add(new SiteEntity { Name = "Existing site", Key = "existing-test-value" });
+        await db.SaveChangesAsync();
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes("""{"ConnectOptions":{}}"""));
+        var source = new ConfigurationBuilder().AddJsonStream(stream).Build();
+
+        await DatabaseConfigurationProvider.ImportFromConfiguration(db, source);
+        db.ChangeTracker.Clear();
+
+        (await db.Sites.AnyAsync()).Should().BeFalse();
+        (await db.ProgramSettings.SingleAsync()).SendVehicleStatus.Should().BeTrue();
     }
 }

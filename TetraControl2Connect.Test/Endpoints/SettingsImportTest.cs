@@ -38,6 +38,7 @@ public class SettingsImportTest
             builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connection));
             await using var app = builder.Build();
             app.MapSettingsEndpoints();
+            app.MapBackupEndpoints();
             await using (var scope = app.Services.CreateAsyncScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -64,7 +65,8 @@ public class SettingsImportTest
                 unsupportedResponse.StatusCode.Should().Be(HttpStatusCode.UnsupportedMediaType);
 
                 foreach (var json in new[] { "{invalid", """{"Logging":{"LogLevel":{"Default":"Information"}}}""",
-                    """{"TetraControlOptions":{"TetraControlPort":"invalid"}}""" })
+                    """{"TetraControlOptions":{"TetraControlPort":"invalid"}}""",
+                    """{"ProgramOptions":{"HeartbeatInterval":"invalid"}}""" })
                 {
                     using var invalid = new StringContent(json, Encoding.UTF8, "application/json");
                     using var invalidResponse = await client.PostAsync("/api/settings/import", invalid);
@@ -79,6 +81,14 @@ public class SettingsImportTest
                 var backup = await db.SettingsBackups.OrderBy(b => b.Id).FirstAsync();
                 backup.Description.Should().Be("Automatische Sicherung vor Import");
                 backup.SnapshotJson.Should().NotContain("Uploaded site");
+                using var backupsResponse = await client.GetAsync("/api/backups");
+                backupsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+                (await backupsResponse.Content.ReadAsStringAsync()).Should().Contain("Automatische Sicherung vor Import");
+
+                using var restoreResponse = await client.PostAsync($"/api/backups/{backup.Id}/restore", null);
+                restoreResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+                db.ChangeTracker.Clear();
+                (await db.Sites.AnyAsync()).Should().BeFalse();
             }
             finally
             {

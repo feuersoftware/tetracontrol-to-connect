@@ -235,44 +235,53 @@ namespace FeuerSoftware.TetraControl2Connect.Data
             string[] sectionNames = [ProgramOptions.SectionName, TetraControlOptions.SectionName,
                 StatusOptions.SectionName, PatternOptions.SectionName, SeverityOptions.SectionName,
                 SirenCalloutOptions.SectionName, SirenStatusOptions.SectionName, ConnectOptions.SectionName];
-            if (!sectionNames.Any(name => configuration.GetSection(name).GetChildren().Any()))
+            if (!sectionNames.Any(name => HasSection(configuration, name)))
                 throw new ArgumentException("Die Datei enthält keine unterstützten Einstellungsbereiche.");
             if (sectionNames.Any(name => configuration.GetSection(name).Value != null))
                 throw new ArgumentException("Einstellungsbereiche müssen JSON-Objekte sein.");
 
+            // Validate runtime types (especially TimeSpan values stored as strings) before replacing any settings.
+            _ = configuration.GetSection(ProgramOptions.SectionName).Get<ProgramOptions>();
+            _ = configuration.GetSection(TetraControlOptions.SectionName).Get<TetraControlOptions>();
+            foreach (var site in configuration.GetSection($"{ConnectOptions.SectionName}:Sites").GetChildren())
+            {
+                foreach (var siren in site.GetSection("Sirens").GetChildren())
+                    _ = siren.GetValue<TimeSpan?>("ExpectedHeartbeatInterval");
+            }
+
             await using var transaction = await context.Database.BeginTransactionAsync().ConfigureAwait(false);
 
-            if (configuration.GetSection(SirenStatusOptions.SectionName).Exists())
+            if (HasSection(configuration, SirenStatusOptions.SectionName))
             {
                 context.FailureTranslations.RemoveRange(context.FailureTranslations);
                 context.SirenStatusSettings.RemoveRange(context.SirenStatusSettings);
             }
-            if (configuration.GetSection(SirenCalloutOptions.SectionName).Exists())
+            if (HasSection(configuration, SirenCalloutOptions.SectionName))
             {
                 context.SirenCodeTranslations.RemoveRange(context.SirenCodeTranslations);
                 context.SirenCalloutSettings.RemoveRange(context.SirenCalloutSettings);
             }
-            if (configuration.GetSection(SeverityOptions.SectionName).Exists())
+            if (HasSection(configuration, SeverityOptions.SectionName))
             {
                 context.SeverityTranslations.RemoveRange(context.SeverityTranslations);
                 context.SeveritySettings.RemoveRange(context.SeveritySettings);
             }
-            if (configuration.GetSection(PatternOptions.SectionName).Exists())
+            if (HasSection(configuration, PatternOptions.SectionName))
             {
                 context.AdditionalPatterns.RemoveRange(context.AdditionalPatterns);
                 context.PatternSettings.RemoveRange(context.PatternSettings);
             }
-            if (configuration.GetSection(StatusOptions.SectionName).Exists())
+            if (HasSection(configuration, StatusOptions.SectionName))
                 context.StatusSettings.RemoveRange(context.StatusSettings);
-            if (configuration.GetSection(ConnectOptions.SectionName).Exists())
+            if (HasSection(configuration, ConnectOptions.SectionName))
             {
                 context.SubnetAddresses.RemoveRange(context.SubnetAddresses);
                 context.Sirens.RemoveRange(context.Sirens);
                 context.Sites.RemoveRange(context.Sites);
             }
-            if (configuration.GetSection(TetraControlOptions.SectionName).Exists())
+            if (HasSection(configuration, TetraControlOptions.SectionName))
                 context.TetraControlSettings.RemoveRange(context.TetraControlSettings);
-            if (configuration.GetSection(ProgramOptions.SectionName).Exists())
+            if (HasSection(configuration, ProgramOptions.SectionName))
                 context.ProgramSettings.RemoveRange(context.ProgramSettings);
             await context.SaveChangesAsync().ConfigureAwait(false);
 
@@ -304,10 +313,13 @@ namespace FeuerSoftware.TetraControl2Connect.Data
             return countAfter > countBefore;
         }
 
+        private static bool HasSection(IConfiguration configuration, string name)
+            => configuration.GetChildren().Any(section => string.Equals(section.Key, name, StringComparison.OrdinalIgnoreCase));
+
         private static void SeedProgramSettings(AppDbContext context, IConfiguration configuration, ILogger? logger)
         {
             var section = configuration.GetSection(ProgramOptions.SectionName);
-            if (!section.Exists()) { logger?.LogDebug("Section '{Section}' not found. Skipping.", ProgramOptions.SectionName); return; }
+            if (!HasSection(configuration, ProgramOptions.SectionName)) { logger?.LogDebug("Section '{Section}' not found. Skipping.", ProgramOptions.SectionName); return; }
 
             context.ProgramSettings.Add(new ProgramSettingsEntity
             {
@@ -339,7 +351,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data
         private static void SeedTetraControlSettings(AppDbContext context, IConfiguration configuration, ILogger? logger)
         {
             var section = configuration.GetSection(TetraControlOptions.SectionName);
-            if (!section.Exists()) { logger?.LogDebug("Section '{Section}' not found. Skipping.", TetraControlOptions.SectionName); return; }
+            if (!HasSection(configuration, TetraControlOptions.SectionName)) { logger?.LogDebug("Section '{Section}' not found. Skipping.", TetraControlOptions.SectionName); return; }
 
             context.TetraControlSettings.Add(new TetraControlSettingsEntity
             {
@@ -355,7 +367,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data
         private static void SeedStatusSettings(AppDbContext context, IConfiguration configuration, ILogger? logger)
         {
             var section = configuration.GetSection(StatusOptions.SectionName);
-            if (!section.Exists()) { logger?.LogDebug("Section '{Section}' not found. Skipping.", StatusOptions.SectionName); return; }
+            if (!HasSection(configuration, StatusOptions.SectionName)) { logger?.LogDebug("Section '{Section}' not found. Skipping.", StatusOptions.SectionName); return; }
 
             context.StatusSettings.Add(new StatusSettingsEntity
             {
@@ -373,7 +385,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data
         private static void SeedPatternSettings(AppDbContext context, IConfiguration configuration, ILogger? logger)
         {
             var section = configuration.GetSection(PatternOptions.SectionName);
-            if (!section.Exists()) { logger?.LogDebug("Section '{Section}' not found. Skipping.", PatternOptions.SectionName); return; }
+            if (!HasSection(configuration, PatternOptions.SectionName)) { logger?.LogDebug("Section '{Section}' not found. Skipping.", PatternOptions.SectionName); return; }
 
             var entity = new PatternSettingsEntity
             {
@@ -413,7 +425,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data
         private static void SeedSeveritySettings(AppDbContext context, IConfiguration configuration, ILogger? logger)
         {
             var section = configuration.GetSection(SeverityOptions.SectionName);
-            if (!section.Exists()) { logger?.LogDebug("Section '{Section}' not found. Skipping.", SeverityOptions.SectionName); return; }
+            if (!HasSection(configuration, SeverityOptions.SectionName)) { logger?.LogDebug("Section '{Section}' not found. Skipping.", SeverityOptions.SectionName); return; }
 
             var entity = new SeveritySettingsEntity
             {
@@ -441,7 +453,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data
         private static void SeedSirenCalloutSettings(AppDbContext context, IConfiguration configuration, ILogger? logger)
         {
             var section = configuration.GetSection(SirenCalloutOptions.SectionName);
-            if (!section.Exists()) { logger?.LogDebug("Section '{Section}' not found. Skipping.", SirenCalloutOptions.SectionName); return; }
+            if (!HasSection(configuration, SirenCalloutOptions.SectionName)) { logger?.LogDebug("Section '{Section}' not found. Skipping.", SirenCalloutOptions.SectionName); return; }
 
             var entity = new SirenCalloutSettingsEntity
             {
@@ -469,7 +481,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data
         private static void SeedSirenStatusSettings(AppDbContext context, IConfiguration configuration, ILogger? logger)
         {
             var section = configuration.GetSection(SirenStatusOptions.SectionName);
-            if (!section.Exists()) { logger?.LogDebug("Section '{Section}' not found. Skipping.", SirenStatusOptions.SectionName); return; }
+            if (!HasSection(configuration, SirenStatusOptions.SectionName)) { logger?.LogDebug("Section '{Section}' not found. Skipping.", SirenStatusOptions.SectionName); return; }
 
             var entity = new SirenStatusSettingsEntity { Id = 1 };
 
@@ -493,7 +505,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data
         private static void SeedConnectOptions(AppDbContext context, IConfiguration configuration, ILogger? logger)
         {
             var section = configuration.GetSection(ConnectOptions.SectionName);
-            if (!section.Exists()) { logger?.LogDebug("Section '{Section}' not found. Skipping.", ConnectOptions.SectionName); return; }
+            if (!HasSection(configuration, ConnectOptions.SectionName)) { logger?.LogDebug("Section '{Section}' not found. Skipping.", ConnectOptions.SectionName); return; }
 
             var sitesSection = section.GetSection("Sites");
             if (!sitesSection.Exists()) return;
