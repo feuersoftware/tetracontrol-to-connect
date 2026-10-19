@@ -22,6 +22,12 @@ namespace FeuerSoftware.TetraControl2Connect.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<SettingsBackupEntity>()
+                .Property(b => b.CreatedAt)
+                .HasConversion(
+                    value => value.UtcDateTime,
+                    value => new DateTimeOffset(DateTime.SpecifyKind(value, DateTimeKind.Utc)));
+
             // SiteEntity → SubnetAddressEntity (cascade delete)
             modelBuilder.Entity<SiteEntity>()
                 .HasMany(s => s.SubnetAddresses)

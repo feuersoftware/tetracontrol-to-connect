@@ -15,7 +15,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.10");
 
             modelBuilder.Entity("FeuerSoftware.TetraControl2Connect.Data.AdditionalPatternEntity", b =>
                 {
@@ -207,7 +207,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
