@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 const { fetchSettings, updateSettings, loading, saving } = useSettings()
 
 interface SirenCalloutSettings {
@@ -38,6 +39,7 @@ function removeEntry(key: string) {
 
 function updateKey(oldKey: string, newKeyVal: string) {
   const val = form.value.sirenCodeTranslations[oldKey]
+  if (val === undefined) return
   delete form.value.sirenCodeTranslations[oldKey]
   form.value.sirenCodeTranslations[newKeyVal] = val
 }
@@ -51,11 +53,12 @@ function updateValue(key: string, val: string) {
   <div>
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold">Sirenen-Alarmierung</h1>
-        <p class="text-muted mt-1">Sirenen-Code Übersetzungen konfigurieren</p>
+        <h1 class="text-2xl font-bold">{{ t('nav.sirenCallout') }}</h1>
+        <p class="text-muted mt-1">{{ t('sirenCallout.description') }}</p>
       </div>
       <UButton
-        label="Speichern"
+        :label="t('common.save')"
+        color="neutral"
         icon="i-lucide-save"
         :loading="saving"
         @click="save"
@@ -66,8 +69,11 @@ function updateValue(key: string, val: string) {
       <div class="flex gap-3">
         <UIcon name="i-lucide-info" class="w-5 h-5 text-primary shrink-0 mt-0.5" />
         <div class="text-sm text-muted">
-          <p>Konfigurieren Sie hier die Übersetzung von Sirenen-Alarmierungscodes. Wenn eine Sirene einen Alarmierungscode empfängt, wird dieser anhand der konfigurierten Übersetzungen in einen verständlichen Text umgewandelt.</p>
-          <p class="mt-2">Der <strong>Sirenen-Code</strong> ist der numerische Code aus der TETRA-Nachricht, die <strong>Übersetzung</strong> ist der Text, der in Connect angezeigt wird. Optional kann die Übersetzung als Einsatz-Stichwort verwendet werden.</p>
+          <p>{{ t('sirenCallout.info') }}</p>
+          <i18n-t scope="global" keypath="sirenCallout.infoDetail" tag="p" class="mt-2">
+            <template #key><strong>{{ t('sirenCallout.keyLabel') }}</strong></template>
+            <template #value><strong>{{ t('dictionary.valueLabel') }}</strong></template>
+          </i18n-t>
         </div>
       </div>
     </UCard>
@@ -79,12 +85,12 @@ function updateValue(key: string, val: string) {
     <div v-else class="space-y-6">
       <UCard>
         <template #header>
-          <h2 class="font-semibold">Optionen</h2>
+          <h2 class="font-semibold">{{ t('dictionary.options') }}</h2>
         </template>
         <div class="flex items-center justify-between">
           <div>
-            <p class="font-medium text-sm">Sirenen-Code Übersetzung als Stichwort verwenden</p>
-            <p class="text-xs text-muted">Übersetzte Sirenen-Codes werden als Einsatz-Stichwort genutzt</p>
+            <p class="font-medium text-sm">{{ t('sirenCallout.useAsKeyword') }}</p>
+            <p class="text-xs text-muted">{{ t('sirenCallout.useAsKeywordHint') }}</p>
           </div>
           <USwitch v-model="form.useSirenCodeTranslationAsKeyword" />
         </div>
@@ -92,11 +98,11 @@ function updateValue(key: string, val: string) {
 
       <UCard>
         <template #header>
-          <h2 class="font-semibold">Sirenen-Code Übersetzungen</h2>
+          <h2 class="font-semibold">{{ t('sirenCallout.translations') }}</h2>
         </template>
 
         <div v-if="entries.length === 0" class="text-sm text-muted py-4 text-center">
-          Keine Übersetzungen konfiguriert
+          {{ t('dictionary.empty') }}
         </div>
 
         <div v-else class="space-y-2 mb-4">
@@ -107,7 +113,7 @@ function updateValue(key: string, val: string) {
           >
             <UInput
               :model-value="key"
-              placeholder="Sirenen-Code"
+              :placeholder="t('sirenCallout.keyLabel')"
               class="flex-1"
               size="sm"
               @update:model-value="(v: string) => updateKey(key, v)"
@@ -115,7 +121,7 @@ function updateValue(key: string, val: string) {
             <UIcon name="i-lucide-arrow-right" class="w-4 h-4 text-muted shrink-0" />
             <UInput
               :model-value="value"
-              placeholder="Übersetzung"
+              :placeholder="t('dictionary.valueLabel')"
               class="flex-1"
               size="sm"
               @update:model-value="(v: string) => updateValue(key, v)"
@@ -133,9 +139,9 @@ function updateValue(key: string, val: string) {
         <USeparator v-if="entries.length > 0" class="my-4" />
 
         <div class="flex items-center gap-2">
-          <UInput v-model="newKey" placeholder="Neuer Code" class="flex-1" size="sm" />
+          <UInput v-model="newKey" :placeholder="t('sirenCallout.newKey')" class="flex-1" size="sm" />
           <UIcon name="i-lucide-arrow-right" class="w-4 h-4 text-muted shrink-0" />
-          <UInput v-model="newValue" placeholder="Übersetzung" class="flex-1" size="sm" />
+          <UInput v-model="newValue" :placeholder="t('dictionary.valueLabel')" class="flex-1" size="sm" />
           <UButton
             icon="i-lucide-plus"
             variant="outline"
@@ -148,7 +154,8 @@ function updateValue(key: string, val: string) {
 
       <div class="flex justify-end">
         <UButton
-          label="Speichern"
+          :label="t('common.save')"
+          color="neutral"
           icon="i-lucide-save"
           :loading="saving"
           @click="save"

@@ -1,2 +1,26 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+@import "@fontsource-variable/public-sans/wght.css";
+@import "@fontsource-variable/public-sans/wght-italic.css";
+
+@theme static {
+  --font-sans: 'Public Sans Variable', 'Public Sans', sans-serif;
+}
+
+:root {
+  --ui-color-primary-500: var(--color-red-600);
+  --ui-text-muted: var(--color-slate-600);
+}
+
+.dark {
+  --ui-text-muted: var(--color-slate-400);
+}
+
+/* Sidebar theme, same as Connect Portal */
+.bg-theme {
+  background-color: #952329;
+}
+
+.text-theme {
+  color: var(--ui-color-neutral-300);
+}

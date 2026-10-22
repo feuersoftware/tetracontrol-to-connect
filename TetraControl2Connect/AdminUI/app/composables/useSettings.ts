@@ -1,5 +1,6 @@
 export function useSettings() {
   const toast = useToast()
+  const { t } = useI18n()
   const config = useRuntimeConfig()
   const apiBase = config.public.apiBase
 
@@ -12,8 +13,8 @@ export function useSettings() {
       return await $fetch<Record<string, any>>(`${apiBase}/settings`)
     } catch (e: any) {
       toast.add({
-        title: 'Fehler beim Laden',
-        description: e?.data?.message || e?.message || 'Einstellungen konnten nicht geladen werden.',
+        title: t('settings.loadErrorTitle'),
+        description: e?.data?.message || e?.message || t('settings.loadAllError'),
         color: 'error'
       })
       return null
@@ -28,8 +29,8 @@ export function useSettings() {
       return await $fetch<T>(`${apiBase}/settings/${sectionName}`)
     } catch (e: any) {
       toast.add({
-        title: 'Fehler beim Laden',
-        description: e?.data?.message || e?.message || `${sectionName} konnte nicht geladen werden.`,
+        title: t('settings.loadErrorTitle'),
+        description: e?.data?.message || e?.message || t('settings.loadError', { section: sectionName }),
         color: 'error'
       })
       return null
@@ -46,15 +47,15 @@ export function useSettings() {
         body: data
       })
       toast.add({
-        title: 'Gespeichert',
-        description: `${sectionName} wurde erfolgreich gespeichert.`,
+        title: t('settings.savedTitle'),
+        description: t('settings.saved', { section: sectionName }),
         color: 'success'
       })
       return true
     } catch (e: any) {
       toast.add({
-        title: 'Fehler beim Speichern',
-        description: e?.data?.message || e?.message || `${sectionName} konnte nicht gespeichert werden.`,
+        title: t('settings.saveErrorTitle'),
+        description: e?.data?.message || e?.message || t('settings.saveError', { section: sectionName }),
         color: 'error'
       })
       return false

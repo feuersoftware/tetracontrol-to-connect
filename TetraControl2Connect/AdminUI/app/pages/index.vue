@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { fetchAllSettings, loading } = useSettings()
+const { t } = useI18n()
 
 interface SectionInfo {
   slug: string
@@ -9,16 +10,16 @@ interface SectionInfo {
   to: string
 }
 
-const sections: SectionInfo[] = [
-  { slug: 'program', label: 'Programmoptionen', description: 'Allgemeine Programmeinstellungen', icon: 'i-lucide-settings', to: '/settings/program' },
-  { slug: 'tetracontrol', label: 'TetraControl', description: 'TetraControl Verbindungseinstellungen', icon: 'i-lucide-radio', to: '/settings/tetracontrol' },
-  { slug: 'connect', label: 'Connect / Standorte', description: 'Standorte, Subnetze und Sirenen', icon: 'i-lucide-network', to: '/settings/connect' },
-  { slug: 'status', label: 'Status', description: 'Status-Zuordnungen', icon: 'i-lucide-activity', to: '/settings/status' },
-  { slug: 'pattern', label: 'Muster (Pattern)', description: 'Regex-Muster für Alarmauswertung', icon: 'i-lucide-regex', to: '/settings/pattern' },
-  { slug: 'severity', label: 'Schweregrade', description: 'Schweregrad-Übersetzungen', icon: 'i-lucide-alert-triangle', to: '/settings/severity' },
-  { slug: 'siren-callout', label: 'Sirenen-Alarmierung', description: 'Sirenen-Code Übersetzungen', icon: 'i-lucide-siren', to: '/settings/siren-callout' },
-  { slug: 'siren-status', label: 'Sirenen-Status', description: 'Sirenen Fehler-Übersetzungen', icon: 'i-lucide-bell', to: '/settings/siren-status' }
-]
+const sections = computed<SectionInfo[]>(() => [
+  { slug: 'program', label: t('nav.program'), description: t('dashboard.sections.program'), icon: 'i-lucide-settings', to: '/settings/program' },
+  { slug: 'tetracontrol', label: t('nav.tetracontrol'), description: t('dashboard.sections.tetracontrol'), icon: 'i-lucide-radio', to: '/settings/tetracontrol' },
+  { slug: 'connect', label: t('nav.connect'), description: t('dashboard.sections.connect'), icon: 'i-lucide-network', to: '/settings/connect' },
+  { slug: 'status', label: t('nav.status'), description: t('dashboard.sections.status'), icon: 'i-lucide-activity', to: '/settings/status' },
+  { slug: 'pattern', label: t('nav.pattern'), description: t('dashboard.sections.pattern'), icon: 'i-lucide-regex', to: '/settings/pattern' },
+  { slug: 'severity', label: t('nav.severity'), description: t('dashboard.sections.severity'), icon: 'i-lucide-alert-triangle', to: '/settings/severity' },
+  { slug: 'siren-callout', label: t('nav.sirenCallout'), description: t('dashboard.sections.sirenCallout'), icon: 'i-lucide-siren', to: '/settings/siren-callout' },
+  { slug: 'siren-status', label: t('nav.sirenStatus'), description: t('dashboard.sections.sirenStatus'), icon: 'i-lucide-bell', to: '/settings/siren-status' }
+])
 
 interface OverviewSection {
   section: string
@@ -60,8 +61,8 @@ const needsSetup = computed(() => {
 <template>
   <div>
     <div class="mb-8">
-      <h1 class="text-2xl font-bold">Dashboard</h1>
-      <p class="text-muted mt-1">Übersicht aller Einstellungsbereiche</p>
+      <h1 class="text-2xl font-bold">{{ t('nav.dashboard') }}</h1>
+      <p class="text-muted mt-1">{{ t('dashboard.subtitle') }}</p>
     </div>
 
     <div v-if="loading" class="flex items-center justify-center py-20">
@@ -76,13 +77,13 @@ const needsSetup = computed(() => {
             <UIcon name="i-lucide-arrow-up-circle" class="w-8 h-8 text-warning" />
           </div>
           <div class="flex-1">
-            <h3 class="font-semibold">Neue Version verfügbar: {{ updateInfo.latestVersion }}</h3>
+            <h3 class="font-semibold">{{ t('dashboard.update.title', { version: updateInfo.latestVersion }) }}</h3>
             <p class="text-sm text-muted mt-1">
-              Eine neue Version von TetraControl2Connect ist verfügbar. Bitte aktualisieren Sie die Anwendung, um von den neuesten Funktionen und Fehlerbehebungen zu profitieren.
+              {{ t('dashboard.update.description') }}
             </p>
           </div>
           <UButton
-            label="Herunterladen"
+            :label="t('dashboard.update.download')"
             icon="i-lucide-download"
             color="warning"
             trailing
@@ -111,13 +112,13 @@ const needsSetup = computed(() => {
             <UIcon name="i-lucide-rocket" class="w-8 h-8 text-primary" />
           </div>
           <div class="flex-1">
-            <h3 class="font-semibold">Ersteinrichtung erforderlich</h3>
+            <h3 class="font-semibold">{{ t('dashboard.setup.title') }}</h3>
             <p class="text-sm text-muted mt-1">
-              TetraControl und Connect sind noch nicht konfiguriert. Der Einrichtungsassistent führt Sie in wenigen Schritten durch die Grundkonfiguration.
+              {{ t('dashboard.setup.description') }}
             </p>
           </div>
           <UButton
-            label="Einrichtung starten"
+            :label="t('dashboard.setup.start')"
             icon="i-lucide-arrow-right"
             trailing
             to="/setup"
@@ -146,7 +147,7 @@ const needsSetup = computed(() => {
                 color="success"
                 class="mt-2"
               >
-                Konfiguriert
+                {{ t('dashboard.configured') }}
               </UBadge>
               <UBadge
                 v-else-if="allSettings.length > 0"
@@ -154,7 +155,7 @@ const needsSetup = computed(() => {
                 color="neutral"
                 class="mt-2"
               >
-                Nicht konfiguriert
+                {{ t('dashboard.notConfigured') }}
               </UBadge>
             </div>
           </div>

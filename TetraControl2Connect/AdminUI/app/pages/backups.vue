@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const toast = useToast()
+const { t, locale } = useI18n()
 const config = useRuntimeConfig()
 const apiBase = config.public.apiBase
 
@@ -55,8 +56,8 @@ async function fetchBackups() {
     backups.value = await $fetch<Backup[]>(`${apiBase}/backups`)
   } catch (e: any) {
     toast.add({
-      title: 'Fehler beim Laden',
-      description: e?.data?.message || e?.message || 'Sicherungen konnten nicht geladen werden.',
+      title: t('backups.loadErrorTitle'),
+      description: e?.data?.message || e?.message || t('backups.loadError'),
       color: 'error'
     })
   } finally {
@@ -69,15 +70,15 @@ async function createBackup() {
   try {
     await $fetch(`${apiBase}/backups`, { method: 'POST' })
     toast.add({
-      title: 'Sicherung erstellt',
-      description: 'Eine manuelle Sicherung wurde erfolgreich erstellt.',
+      title: t('backups.createdTitle'),
+      description: t('backups.created'),
       color: 'success'
     })
     await fetchBackups()
   } catch (e: any) {
     toast.add({
-      title: 'Fehler',
-      description: e?.data?.message || e?.message || 'Sicherung konnte nicht erstellt werden.',
+      title: t('common.error'),
+      description: e?.data?.message || e?.message || t('backups.createError'),
       color: 'error'
     })
   } finally {
@@ -90,14 +91,14 @@ async function restoreBackup(id: number) {
   try {
     await $fetch(`${apiBase}/backups/${id}/restore`, { method: 'POST' })
     toast.add({
-      title: 'Wiederhergestellt',
-      description: 'Die Einstellungen wurden erfolgreich wiederhergestellt.',
+      title: t('backups.restoredTitle'),
+      description: t('backups.restored'),
       color: 'success'
     })
   } catch (e: any) {
     toast.add({
-      title: 'Fehler',
-      description: e?.data?.message || e?.message || 'Wiederherstellung fehlgeschlagen.',
+      title: t('common.error'),
+      description: e?.data?.message || e?.message || t('backups.restoreError'),
       color: 'error'
     })
   } finally {
@@ -109,15 +110,15 @@ async function deleteBackup(id: number) {
   try {
     await $fetch(`${apiBase}/backups/${id}`, { method: 'DELETE' })
     toast.add({
-      title: 'Gelöscht',
-      description: 'Die Sicherung wurde gelöscht.',
+      title: t('backups.deletedTitle'),
+      description: t('backups.deleted'),
       color: 'success'
     })
     await fetchBackups()
   } catch (e: any) {
     toast.add({
-      title: 'Fehler',
-      description: e?.data?.message || e?.message || 'Sicherung konnte nicht gelöscht werden.',
+      title: t('common.error'),
+      description: e?.data?.message || e?.message || t('backups.deleteError'),
       color: 'error'
     })
   }
@@ -125,7 +126,7 @@ async function deleteBackup(id: number) {
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr)
-  return date.toLocaleDateString('de-DE', {
+  return date.toLocaleDateString(locale.value, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -135,6 +136,18 @@ function formatDate(dateStr: string) {
   })
 }
 
+// Backup descriptions are stored by the backend in German; translate the known ones for display.
+const backendDescriptionKeys: Record<string, string> = {
+  'Automatische Sicherung': 'backups.descriptions.automatic',
+  'Automatische Sicherung vor Import': 'backups.descriptions.automaticBeforeImport',
+  'Manuelle Sicherung': 'backups.descriptions.manual'
+}
+
+function displayDescription(description: string) {
+  const key = backendDescriptionKeys[description]
+  return key ? t(key) : description
+}
+
 onMounted(fetchBackups)
 </script>
 
@@ -142,11 +155,12 @@ onMounted(fetchBackups)
   <div>
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold">Sicherungen</h1>
-        <p class="text-muted mt-1">Wiederherstellungspunkte der Einstellungen</p>
+        <h1 class="text-2xl font-bold">{{ t('nav.backups') }}</h1>
+        <p class="text-muted mt-1">{{ t('backups.subtitle') }}</p>
       </div>
       <UButton
-        label="Sicherung erstellen"
+        :label="t('backups.create')"
+        color="neutral"
         icon="i-lucide-plus"
         :loading="creating"
         @click="createBackup"
@@ -157,8 +171,12 @@ onMounted(fetchBackups)
       <div class="flex gap-3">
         <UIcon name="i-lucide-info" class="w-5 h-5 text-primary shrink-0 mt-0.5" />
         <div class="text-sm text-muted">
-          <p>Bei jeder Änderung an den Einstellungen wird automatisch eine tägliche Sicherung erstellt (eine pro Tag). Zusätzlich können Sie jederzeit manuell eine Sicherung anlegen.</p>
-          <p class="mt-2">Über <strong>Wiederherstellen</strong> können Sie alle Einstellungen auf den Stand eines früheren Zeitpunkts zurücksetzen. Die aktuelle Konfiguration wird dabei vollständig durch die gesicherten Werte ersetzt.</p>
+          <p>{{ t('backups.info.automatic') }}</p>
+          <i18n-t scope="global" keypath="backups.info.restore" tag="p" class="mt-2">
+            <template #action>
+              <strong>{{ t('backups.restore') }}</strong>
+            </template>
+          </i18n-t>
         </div>
       </div>
     </UCard>
@@ -198,8 +216,8 @@ onMounted(fetchBackups)
 
     <div v-else-if="backups.length === 0" class="text-center py-20">
       <UIcon name="i-lucide-archive" class="w-12 h-12 text-muted mx-auto mb-4" />
-      <p class="text-lg font-medium text-muted">Keine Sicherungen vorhanden</p>
-      <p class="text-sm text-muted mt-1">Sicherungen werden automatisch erstellt, sobald Sie Einstellungen ändern.</p>
+      <p class="text-lg font-medium text-muted">{{ t('backups.empty.title') }}</p>
+      <p class="text-sm text-muted mt-1">{{ t('backups.empty.description') }}</p>
     </div>
 
     <div v-else class="space-y-3">
@@ -211,13 +229,13 @@ onMounted(fetchBackups)
               class="w-5 h-5 text-muted shrink-0"
             />
             <div>
-              <p class="font-medium text-sm">{{ backup.description }}</p>
+              <p class="font-medium text-sm">{{ displayDescription(backup.description) }}</p>
               <p class="text-xs text-muted">{{ formatDate(backup.createdAt) }}</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <UButton
-              label="Wiederherstellen"
+              :label="t('backups.restore')"
               icon="i-lucide-undo-2"
               variant="soft"
               size="sm"
@@ -229,6 +247,7 @@ onMounted(fetchBackups)
               variant="ghost"
               color="error"
               size="sm"
+              :aria-label="t('common.delete')"
               @click="deleteBackup(backup.id)"
             />
           </div>

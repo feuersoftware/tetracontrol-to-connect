@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { BadgeProps } from '@nuxt/ui'
+
 import * as signalR from '@microsoft/signalr'
 
 interface Message {
@@ -16,6 +18,8 @@ interface Message {
   timestamp: string
 }
 
+const { t, locale } = useI18n()
+
 const messages = ref<Message[]>([])
 const isConnected = ref(false)
 const hubConnected = ref(false)
@@ -25,15 +29,15 @@ let connection: signalR.HubConnection | null = null
 
 function getTypeLabel(type: string): string {
   switch (type) {
-    case 'status': return 'Status'
-    case 'pos': return 'Position'
+    case 'status': return t('live.types.status')
+    case 'pos': return t('live.types.position')
     case 'sds': return 'SDS'
-    case 'callout': return 'Alarmierung'
+    case 'callout': return t('live.types.callout')
     default: return type
   }
 }
 
-function getTypeColor(type: string): string {
+function getTypeColor(type: string): BadgeProps['color'] {
   switch (type) {
     case 'status': return 'primary'
     case 'pos': return 'success'
@@ -44,7 +48,7 @@ function getTypeColor(type: string): string {
 }
 
 function formatTime(timestamp: string): string {
-  return new Date(timestamp).toLocaleTimeString('de-DE')
+  return new Date(timestamp).toLocaleTimeString(locale.value)
 }
 
 function clearMessages() {
@@ -90,20 +94,20 @@ onUnmounted(() => {
   <div>
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold">Live-Ansicht</h1>
-        <p class="text-muted mt-1">Echtzeit-Nachrichten von TetraControl</p>
+        <h1 class="text-2xl font-bold">{{ t('nav.live') }}</h1>
+        <p class="text-muted mt-1">{{ t('live.subtitle') }}</p>
       </div>
       <div class="flex items-center gap-3">
         <div class="flex items-center gap-2">
           <div :class="['w-2.5 h-2.5 rounded-full', hubConnected ? 'bg-green-500' : 'bg-red-500']" />
-          <span class="text-sm">Live-Verbindung {{ hubConnected ? 'aktiv' : 'getrennt' }}</span>
+          <span class="text-sm">{{ hubConnected ? t('live.hubConnected') : t('live.hubDisconnected') }}</span>
         </div>
         <div class="flex items-center gap-2">
           <div :class="['w-2.5 h-2.5 rounded-full', isConnected ? 'bg-green-500' : 'bg-red-500']" />
-          <span class="text-sm">TetraControl {{ isConnected ? 'verbunden' : 'getrennt' }}</span>
+          <span class="text-sm">{{ isConnected ? t('live.tetraControlConnected') : t('live.tetraControlDisconnected') }}</span>
         </div>
         <UButton
-          label="Leeren"
+          :label="t('live.clear')"
           icon="i-lucide-trash-2"
           variant="outline"
           size="sm"
@@ -114,7 +118,7 @@ onUnmounted(() => {
 
     <div v-if="messages.length === 0" class="text-center py-16">
       <UIcon name="i-lucide-radio" class="w-12 h-12 text-muted mx-auto mb-4 animate-pulse" />
-      <p class="text-muted">Warte auf Nachrichten...</p>
+      <p class="text-muted">{{ t('live.waiting') }}</p>
     </div>
 
     <div v-else class="space-y-2">
@@ -128,11 +132,11 @@ onUnmounted(() => {
         </UBadge>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 text-sm">
-            <span class="font-medium">{{ msg.source || 'Unbekannt' }}</span>
+            <span class="font-medium">{{ msg.source || t('live.unknownSource') }}</span>
             <span v-if="msg.destination" class="text-muted">→ {{ msg.destination }}</span>
           </div>
           <div class="text-sm text-muted mt-1">
-            <span v-if="msg.status">Status: {{ msg.status }}</span>
+            <span v-if="msg.status">{{ t('live.statusValue', { status: msg.status }) }}</span>
             <span v-if="msg.statusCode"> ({{ msg.statusCode }})</span>
             <span v-if="msg.statusText"> – {{ msg.statusText }}</span>
             <span v-if="msg.text"> | {{ msg.text }}</span>

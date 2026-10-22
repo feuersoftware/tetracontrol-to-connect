@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n()
 const { fetchSettings, updateSettings, loading, saving } = useSettings()
 
 interface StatusSettings {
@@ -30,25 +31,26 @@ async function save() {
   await updateSettings('status', form.value)
 }
 
-const fields: { key: keyof StatusSettings; label: string; description: string }[] = [
-  { key: 'availableStatus', label: 'Verfügbar', description: 'Status-Wert für verfügbare Einsatzkräfte' },
-  { key: 'limitedAvailableStatus', label: 'Eingeschränkt verfügbar', description: 'Status-Wert für eingeschränkt verfügbare Einsatzkräfte' },
-  { key: 'notAvailableStatus', label: 'Nicht verfügbar', description: 'Status-Wert für nicht verfügbare Einsatzkräfte' },
-  { key: 'comingStatus', label: 'Kommt', description: 'Status-Wert für zugesagte Einsatzkräfte' },
-  { key: 'notComingStatus', label: 'Kommt nicht', description: 'Status-Wert für absagende Einsatzkräfte' },
-  { key: 'comingLaterStatus', label: 'Kommt später', description: 'Status-Wert für verzögert zugesagte Einsatzkräfte' }
-]
+const fields = computed<{ key: Exclude<keyof StatusSettings, 'id'>; label: string; description: string }[]>(() => [
+  { key: 'availableStatus', label: t('status.fields.availableStatus.label'), description: t('status.fields.availableStatus.description') },
+  { key: 'limitedAvailableStatus', label: t('status.fields.limitedAvailableStatus.label'), description: t('status.fields.limitedAvailableStatus.description') },
+  { key: 'notAvailableStatus', label: t('status.fields.notAvailableStatus.label'), description: t('status.fields.notAvailableStatus.description') },
+  { key: 'comingStatus', label: t('status.fields.comingStatus.label'), description: t('status.fields.comingStatus.description') },
+  { key: 'notComingStatus', label: t('status.fields.notComingStatus.label'), description: t('status.fields.notComingStatus.description') },
+  { key: 'comingLaterStatus', label: t('status.fields.comingLaterStatus.label'), description: t('status.fields.comingLaterStatus.description') }
+])
 </script>
 
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold">Status</h1>
-        <p class="text-muted mt-1">Status-Zuordnungen für Einsatzkräfte</p>
+        <h1 class="text-2xl font-bold">{{ t('nav.status') }}</h1>
+        <p class="text-muted mt-1">{{ t('status.subtitle') }}</p>
       </div>
       <UButton
-        label="Speichern"
+        :label="t('common.save')"
+        color="neutral"
         icon="i-lucide-save"
         :loading="saving"
         @click="save"
@@ -59,8 +61,8 @@ const fields: { key: keyof StatusSettings; label: string; description: string }[
       <div class="flex gap-3">
         <UIcon name="i-lucide-info" class="w-5 h-5 text-primary shrink-0 mt-0.5" />
         <div class="text-sm text-muted">
-          <p>Definieren Sie hier die TETRA-Statuswerte, die den verschiedenen Verfügbarkeits-Zuständen in Feuer Software Connect entsprechen.</p>
-          <p class="mt-2">Wenn ein Benutzer seinen Status am TETRA-Funkgerät ändert, wird der numerische Statuswert mit dieser Tabelle abgeglichen und der entsprechende Verfügbarkeitsstatus an Connect übertragen. Tragen Sie die Statusnummern als kommagetrennte Werte ein (z.B. „1,2").</p>
+          <p>{{ t('status.info.definition') }}</p>
+          <p class="mt-2">{{ t('status.info.matching') }}</p>
         </div>
       </div>
     </UCard>
@@ -72,7 +74,7 @@ const fields: { key: keyof StatusSettings; label: string; description: string }[
     <div v-else>
       <UCard>
         <template #header>
-          <h2 class="font-semibold">Status-Zuordnungen</h2>
+          <h2 class="font-semibold">{{ t('status.mappings') }}</h2>
         </template>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div v-for="field in fields" :key="field.key">
@@ -85,7 +87,8 @@ const fields: { key: keyof StatusSettings; label: string; description: string }[
 
       <div class="flex justify-end mt-6">
         <UButton
-          label="Speichern"
+          :label="t('common.save')"
+          color="neutral"
           icon="i-lucide-save"
           :loading="saving"
           @click="save"
