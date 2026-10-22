@@ -15,10 +15,9 @@ public static class BackupEndpoints
         group.MapGet("/", async (AppDbContext db) =>
         {
             var backups = await db.SettingsBackups
-                .OrderByDescending(b => b.CreatedAt)
                 .Select(b => new { b.Id, b.CreatedAt, b.Description })
                 .ToListAsync();
-            return Results.Ok(backups);
+            return Results.Ok(backups.OrderByDescending(b => b.CreatedAt));
         }).WithName("ListBackups");
 
         // POST /api/backups — Create a manual backup
