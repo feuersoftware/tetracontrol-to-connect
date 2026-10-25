@@ -76,4 +76,29 @@ public class AppDbContextTest
         (await db.SettingsBackups.AsNoTracking().OrderByDescending(b => b.CreatedAt).Select(b => b.CreatedAt).ToArrayAsync())
             .Should().Equal(expected);
     }
+
+    [Fact]
+    public async Task Migrate_LegacyGermanBackupDescriptions_AreReplacedByLanguageNeutralCodes()
+    {
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        await using var db = new AppDbContext(
+            new DbContextOptionsBuilder<AppDbContext>().UseSqlite(connection).Options);
+        var migrator = db.GetService<IMigrator>();
+        await migrator.MigrateAsync("20261019204429_StoreBackupCreatedAtAsUtc");
+        foreach (var description in new[] { "Automatische Sicherung", "Automatische Sicherung vor Import", "Manuelle Sicherung", "Custom" })
+        {
+            await db.Database.ExecuteSqlInterpolatedAsync(
+                $"""INSERT INTO "SettingsBackups" ("CreatedAt", "Description", "SnapshotJson") VALUES ({"2026-10-19 00:00:00"}, {description}, {"{}"})""");
+        }
+
+        await migrator.MigrateAsync();
+
+        (await db.SettingsBackups.AsNoTracking().OrderBy(b => b.Id).Select(b => b.Description).ToArrayAsync())
+            .Should().Equal("automatic", "automatic_before_import", "manual", "Custom");
+
+        await migrator.MigrateAsync("20261019204429_StoreBackupCreatedAtAsUtc");
+        (await db.SettingsBackups.AsNoTracking().OrderBy(b => b.Id).Select(b => b.Description).ToArrayAsync())
+            .Should().Equal("Automatische Sicherung", "Automatische Sicherung vor Import", "Manuelle Sicherung", "Custom");
+    }
 }

@@ -1,6 +1,8 @@
 using FeuerSoftware.TetraControl2Connect.Data;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json;
 
 namespace FeuerSoftware.TetraControl2Connect.Endpoints;
 
@@ -77,24 +79,49 @@ public static class SettingsEndpoints
         .WithName("GetAllSettings");
 
         // POST /api/settings/import — Import settings from appsettings.json (for migrating existing configurations)
-        group.MapPost("/import", async (AppDbContext db, IConfiguration configuration, ILoggerFactory loggerFactory) =>
+        group.MapPost("/import", async (HttpRequest request, AppDbContext db, IConfiguration configuration,
+            IWebHostEnvironment environment, ILoggerFactory loggerFactory) =>
         {
             var logger = loggerFactory.CreateLogger<AppDbContext>();
+            var hasBody = request.HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true;
+            var isJson = request.HasJsonContentType();
+            if (hasBody && !isJson)
+                return Results.StatusCode(StatusCodes.Status415UnsupportedMediaType);
 
-            // Safety net: back up current settings before the import wipes the DB
-            var hasData = await db.ProgramSettings.AnyAsync()
-                       || await db.TetraControlSettings.AnyAsync()
-                       || await db.Sites.AnyAsync();
-
-            if (hasData)
+            try
             {
-                await BackupEndpoints.CreateBackupAsync(db, "Automatische Sicherung vor Import");
-                logger.LogInformation("Created automatic backup before importing settings from appsettings.json.");
+                // Read only the uploaded file (or the local file for bodyless API calls), never the DB provider.
+                // An empty JSON upload has no detectable body (Content-Length: 0) but must fail parsing
+                // instead of silently importing the local file.
+                using var source = new ConfigurationManager();
+                using var stream = new MemoryStream();
+                if (!hasBody && !isJson)
+                    source.SetBasePath(environment.ContentRootPath).AddJsonFile("appsettings.json", optional: false);
+                else
+                {
+                    await request.Body.CopyToAsync(stream, request.HttpContext.RequestAborted);
+                    stream.Position = 0;
+                    source.AddJsonStream(stream);
+                }
+
+                await BackupEndpoints.CreateBackupAsync(db, BackupDescriptions.AutomaticBeforeImport);
+                await DatabaseConfigurationProvider.ImportFromConfiguration(db, source, logger);
+            }
+            catch (Exception ex) when (ex is JsonException or FormatException or InvalidDataException or InvalidOperationException or ArgumentException or FileNotFoundException)
+            {
+                // The error code is language-neutral and translated by the Admin UI; the message is technical detail.
+                var error = ex switch
+                {
+                    FileNotFoundException => "local_file_missing",
+                    JsonException or FormatException or InvalidDataException => "invalid_json",
+                    _ => "invalid_settings",
+                };
+                logger.LogWarning(ex, "Settings import rejected ({Error}). Settings were not changed.", error);
+                return Results.BadRequest(new { error, message = ex.Message });
             }
 
-            await DatabaseConfigurationProvider.ImportFromConfiguration(db, configuration, logger);
             ((IConfigurationRoot)configuration).Reload();
-            return Results.Ok(new { message = "Settings imported from appsettings.json." });
+            return Results.Ok(new { message = "Settings imported. Restart the application to apply them." });
         })
         .WithName("ImportSettings");
 

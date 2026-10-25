@@ -91,7 +91,7 @@ public class BackupEndpointsTest : IAsyncLifetime
 
         backups.Should().ContainSingle();
         backups![0].GetProperty("id").GetInt32().Should().Be(created.GetProperty("id").GetInt32());
-        backups[0].GetProperty("description").GetString().Should().Be("Manuelle Sicherung");
+        backups[0].GetProperty("description").GetString().Should().Be("manual");
         backups[0].GetProperty("createdAt").GetDateTimeOffset().Offset.Should().Be(TimeSpan.Zero);
     }
 
@@ -116,7 +116,7 @@ public class BackupEndpointsTest : IAsyncLifetime
         await BackupEndpoints.EnsureDailyBackupAsync(db);
 
         (await db.SettingsBackups.CountAsync()).Should().Be(expectedCount);
-        (await db.SettingsBackups.CountAsync(b => b.Description == "Automatische Sicherung"))
+        (await db.SettingsBackups.CountAsync(b => b.Description == "automatic"))
             .Should().Be(expectedCount - 1);
     }
 
@@ -141,7 +141,7 @@ public class BackupEndpointsTest : IAsyncLifetime
         settings.SendVehicleStatus.Should().BeTrue();
         settings.WebSocketReconnectTimeoutMinutes.Should().Be(5);
         var backup = await verificationDb.SettingsBackups.SingleAsync();
-        backup.Description.Should().Be("Automatische Sicherung");
+        backup.Description.Should().Be("automatic");
         using var snapshot = JsonDocument.Parse(backup.SnapshotJson);
         snapshot.RootElement.GetProperty("programSettings").GetProperty("sendVehicleStatus").GetBoolean()
             .Should().BeFalse();

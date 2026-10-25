@@ -94,6 +94,17 @@ const needsSetup = computed(() => {
       </UCard>
 
       <!-- Setup banner -->
+      <UCard v-if="allSettings.length > 0 && !sectionExists('connect')" class="mb-6 ring-2 ring-warning">
+        <h3 class="font-semibold">{{ t('dashboard.noSites.title') }}</h3>
+        <p class="text-sm text-muted mt-1">
+          {{ t('dashboard.noSites.description') }}
+        </p>
+        <div class="flex gap-2 mt-3">
+          <UButton :label="t('dashboard.noSites.configureSites')" to="/settings/connect" />
+          <UButton :label="t('dashboard.noSites.importConfiguration')" to="/backups" variant="soft" />
+        </div>
+      </UCard>
+
       <UCard v-if="needsSetup" class="mb-6 ring-2 ring-primary">
         <div class="flex items-center gap-4">
           <div class="p-3 rounded-full bg-primary/10">

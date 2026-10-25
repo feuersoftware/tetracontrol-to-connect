@@ -14,15 +14,65 @@ const backups = ref<Backup[]>([])
 const loading = ref(false)
 const restoring = ref<number | null>(null)
 const creating = ref(false)
+const importFile = ref<File | null>(null)
+const importing = ref(false)
+const importConfirmed = ref(false)
+
+function selectImportFile(event: Event) {
+  importFile.value = (event.target as HTMLInputElement).files?.[0] ?? null
+  importConfirmed.value = false
+}
+
+// Error codes returned by POST /settings/import; the backend message is English and not shown.
+const importErrorKeys: Record<string, string> = {
+  invalid_json: 'backups.import.errors.invalidJson',
+  invalid_settings: 'backups.import.errors.invalidSettings'
+}
+
+async function importSettings() {
+  if (!importFile.value || !importConfirmed.value) return
+  const content = await importFile.value.text()
+  if (!content.trim()) {
+    toast.add({
+      title: t('backups.import.errorTitle'),
+      description: t('backups.import.errors.emptyFile'),
+      color: 'error'
+    })
+    return
+  }
+  importing.value = true
+  try {
+    await $fetch(`${apiBase}/settings/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: content
+    })
+    importConfirmed.value = false
+    toast.add({
+      title: t('backups.import.successTitle'),
+      description: t('backups.import.success'),
+      color: 'success'
+    })
+    await fetchBackups()
+  } catch (e: any) {
+    toast.add({
+      title: t('backups.import.errorTitle'),
+      description: t(importErrorKeys[e?.data?.error] ?? 'backups.import.errors.generic'),
+      color: 'error'
+    })
+  } finally {
+    importing.value = false
+  }
+}
 
 async function fetchBackups() {
   loading.value = true
   try {
     backups.value = await $fetch<Backup[]>(`${apiBase}/backups`)
-  } catch (e: any) {
+  } catch {
     toast.add({
       title: t('backups.loadErrorTitle'),
-      description: e?.data?.message || e?.message || t('backups.loadError'),
+      description: t('backups.loadError'),
       color: 'error'
     })
   } finally {
@@ -40,10 +90,10 @@ async function createBackup() {
       color: 'success'
     })
     await fetchBackups()
-  } catch (e: any) {
+  } catch {
     toast.add({
       title: t('common.error'),
-      description: e?.data?.message || e?.message || t('backups.createError'),
+      description: t('backups.createError'),
       color: 'error'
     })
   } finally {
@@ -60,10 +110,10 @@ async function restoreBackup(id: number) {
       description: t('backups.restored'),
       color: 'success'
     })
-  } catch (e: any) {
+  } catch {
     toast.add({
       title: t('common.error'),
-      description: e?.data?.message || e?.message || t('backups.restoreError'),
+      description: t('backups.restoreError'),
       color: 'error'
     })
   } finally {
@@ -80,10 +130,10 @@ async function deleteBackup(id: number) {
       color: 'success'
     })
     await fetchBackups()
-  } catch (e: any) {
+  } catch {
     toast.add({
       title: t('common.error'),
-      description: e?.data?.message || e?.message || t('backups.deleteError'),
+      description: t('backups.deleteError'),
       color: 'error'
     })
   }
@@ -101,11 +151,11 @@ function formatDate(dateStr: string) {
   })
 }
 
-// Backup descriptions are stored by the backend in German; translate the known ones for display.
+// Backup descriptions are language-neutral codes from the backend; translate them for display.
 const backendDescriptionKeys: Record<string, string> = {
-  'Automatische Sicherung': 'backups.descriptions.automatic',
-  'Automatische Sicherung vor Import': 'backups.descriptions.automaticBeforeImport',
-  'Manuelle Sicherung': 'backups.descriptions.manual'
+  automatic: 'backups.descriptions.automatic',
+  automatic_before_import: 'backups.descriptions.automaticBeforeImport',
+  manual: 'backups.descriptions.manual'
 }
 
 function displayDescription(description: string) {
@@ -144,6 +194,33 @@ onMounted(fetchBackups)
           </i18n-t>
         </div>
       </div>
+    </UCard>
+
+    <UCard class="mb-6">
+      <h2 class="font-semibold mb-2">{{ t('backups.import.title') }}</h2>
+      <p class="text-sm text-muted mb-4">
+        {{ t('backups.import.description') }}
+      </p>
+      <input
+        type="file"
+        accept=".json,application/json"
+        :aria-label="t('backups.import.selectFile')"
+        :disabled="importing"
+        @change="selectImportFile"
+      >
+      <UCheckbox
+        v-model="importConfirmed"
+        :label="t('backups.import.confirm')"
+        :disabled="!importFile || importing"
+        class="my-4"
+      />
+      <UButton
+        :label="t('backups.import.submit')"
+        icon="i-lucide-upload"
+        :disabled="!importFile || !importConfirmed"
+        :loading="importing"
+        @click="importSettings"
+      />
     </UCard>
 
     <div v-if="loading" class="flex items-center justify-center py-20">

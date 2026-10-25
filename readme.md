@@ -26,6 +26,15 @@ TetraControl2Connect verbindet mehrere Connect-Standorte – auch organisations�
 4. Beim ersten Start wird die SQLite-Datenbank `settings.db` angelegt. Wenn bereits passende Konfigurationsabschnitte in `appsettings.json` vorhanden sind, werden diese automatisch importiert; andernfalls werden Standardwerte angelegt.
 5. Der Einrichtungsassistent unter `http://localhost:5050/setup` führt durch die Grundkonfiguration.
 
+### Update auf Version 3 und spätere Updates
+1. TetraControl2Connect beenden und den bisherigen Programmordner sichern, insbesondere `appsettings.json` sowie eine vorhandene `settings.db` einschließlich `settings.db-wal` und `settings.db-shm`.
+2. Das neue Paket entpacken. Es enthält keine `appsettings.json` mehr und überschreibt deshalb keine vorhandene Konfigurationsdatei.
+3. **Beim Wechsel von V2 auf V3 die alte `appsettings.json` vor dem allerersten Start in den neuen Programmordner kopieren.** Nur bei einer noch nicht initialisierten Datenbank wird sie automatisch übernommen.
+4. Bei einer bestehenden V3-Installation die vorhandene Datenbank beibehalten bzw. bei einem Verzeichniswechsel die gesicherten `settings.db`-Dateien übernehmen. Vorhandene Datenbankeinstellungen werden beim Start nicht durch `appsettings.json` ersetzt.
+5. Anwendung starten und im Dashboard prüfen, ob Standorte vorhanden sind.
+
+**V3 versehentlich schon ohne alte Konfiguration gestartet?** Die Datenbank muss nicht gelöscht oder umbenannt werden: Unter **Sicherungen → appsettings.json importieren** die alte Datei auswählen und das Ersetzen bestätigen. Nur enthaltene Einstellungsbereiche werden vollständig ersetzt (einschließlich ihrer Listen); nicht enthaltene Bereiche bleiben erhalten. Vorher wird automatisch eine wiederherstellbare Sicherung erstellt. Nach dem Import die Anwendung neu starten. Das bloße Zurückkopieren der Datei hat bei einer vorhandenen Datenbank keine Wirkung.
+
 ### Admin-Oberfläche und API
 Die Admin-Oberfläche unter `http://localhost:5050` bietet unter anderem:
 - Dashboard mit Schnellzugriff auf alle Konfigurationsbereiche
@@ -33,6 +42,7 @@ Die Admin-Oberfläche unter `http://localhost:5050` bietet unter anderem:
 - Einstellungsseiten für Programmoptionen, TetraControl-Verbindung, Connect-Standorte, Status-Zuordnungen, Muster, Schweregrade, Sirenen-Alarmierung und Sirenen-Status
 - Live-Ansicht unter `/live` für Echtzeit-Nachrichten
 - Backup-Verwaltung unter `/backups` für Sicherung und Wiederherstellung
+- Import einer bisherigen `appsettings.json` unter `/backups` und Dashboard-Warnung bei fehlenden Standorten
 - Swagger UI unter `http://localhost:5050/swagger`
 
 Die Einstellungen werden in SQLite (`settings.db`) gespeichert und per EF Core Migrationen verwaltet. Zusätzlich zur Backup-Verwaltung in der Oberfläche wird automatisch eine tägliche Sicherung angelegt.
@@ -50,7 +60,7 @@ Die REST API ist unter `http://localhost:5050/api` verfügbar:
 | `GET/PUT` | `/api/settings/severity` | Schweregrade und Übersetzungen |
 | `GET/PUT` | `/api/settings/siren-callout` | Sirenen-Alarmierung |
 | `GET/PUT` | `/api/settings/siren-status` | Sirenen-Status |
-| `POST` | `/api/settings/import` | Einstellungen aus `appsettings.json` importieren |
+| `POST` | `/api/settings/import` | JSON-Datei als Request-Body importieren; ohne Body lokale `appsettings.json` verwenden. Enthaltene Bereiche ersetzen, übrige erhalten; automatische Sicherung, danach Neustart erforderlich |
 | `GET` | `/api/backups` | Sicherungen auflisten |
 | `POST` | `/api/backups` | Manuelle Sicherung erstellen |
 | `POST` | `/api/backups/{id}/restore` | Sicherung wiederherstellen |
@@ -136,6 +146,15 @@ TetraControl2Connect connects multiple Connect sites – including sites across 
 4. On first start, the SQLite database `settings.db` is created. If matching configuration sections already exist in `appsettings.json`, they are imported automatically; otherwise the application seeds sensible defaults.
 5. The setup wizard at `http://localhost:5050/setup` guides you through the initial configuration.
 
+### Upgrading to version 3 and subsequent updates
+1. Stop TetraControl2Connect and back up the previous application directory, especially `appsettings.json` and any existing `settings.db`, including `settings.db-wal` and `settings.db-shm`.
+2. Extract the new package. It no longer includes `appsettings.json`, so it cannot overwrite an existing configuration file.
+3. **When upgrading from V2 to V3, copy the old `appsettings.json` into the new application directory before the very first start.** Automatic import only happens when the database has not been initialized.
+4. For an existing V3 installation, retain the database or copy the backed-up `settings.db` files when moving directories. Startup does not replace existing database settings with `appsettings.json`.
+5. Start the application and check the dashboard for configured sites.
+
+**Already started V3 without the old configuration?** There is no need to delete or rename the database: use **Sicherungen → appsettings.json importieren** to select the old file and confirm replacement. Only sections included in the file are replaced in full (including their lists); other sections are retained. A restorable backup is created automatically beforehand. Restart the application after importing. Merely copying the file back has no effect on an existing database.
+
 ### Admin UI and API
 The Admin UI at `http://localhost:5050` includes:
 - A dashboard with quick access to all configuration areas
@@ -143,6 +162,7 @@ The Admin UI at `http://localhost:5050` includes:
 - Settings pages for program options, the TetraControl connection, Connect sites, status mappings, patterns, severity levels, siren callout settings, and siren status settings
 - A live view at `/live` for real-time messages
 - Backup management at `/backups` for creating and restoring configuration snapshots
+- Import of an existing `appsettings.json` at `/backups` and a dashboard warning when no sites are configured
 - Swagger UI at `http://localhost:5050/swagger`
 
 Settings are stored in SQLite (`settings.db`) and managed through EF Core migrations. In addition to the backup tools in the UI, the application also creates a daily backup automatically.
@@ -160,7 +180,7 @@ The REST API is available at `http://localhost:5050/api`:
 | `GET/PUT` | `/api/settings/severity` | Severity levels and translations |
 | `GET/PUT` | `/api/settings/siren-callout` | Siren callout configuration |
 | `GET/PUT` | `/api/settings/siren-status` | Siren status configuration |
-| `POST` | `/api/settings/import` | Import settings from `appsettings.json` |
+| `POST` | `/api/settings/import` | Import JSON in the request body, or local `appsettings.json` without a body. Replace included sections, retain others; automatic backup, restart required afterwards |
 | `GET` | `/api/backups` | List backups |
 | `POST` | `/api/backups` | Create a manual backup |
 | `POST` | `/api/backups/{id}/restore` | Restore a backup |

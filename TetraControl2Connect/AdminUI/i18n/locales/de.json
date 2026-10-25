@@ -64,6 +64,12 @@
       "title": "Ersteinrichtung erforderlich",
       "description": "TetraControl und Connect sind noch nicht konfiguriert. Der Einrichtungsassistent führt Sie in wenigen Schritten durch die Grundkonfiguration.",
       "start": "Einrichtung starten"
+    },
+    "noSites": {
+      "title": "Keine Standorte konfiguriert",
+      "description": "Auch bei bestehender TetraControl-Verbindung werden ohne Connect-Standorte keine Daten übertragen. Fügen Sie Standorte hinzu oder importieren Sie Ihre bisherige appsettings.json unter Sicherungen.",
+      "configureSites": "Standorte konfigurieren",
+      "importConfiguration": "Konfiguration importieren"
     }
   },
   "live": {
@@ -109,7 +115,23 @@
     "restoreError": "Wiederherstellung fehlgeschlagen.",
     "deletedTitle": "Gelöscht",
     "deleted": "Die Sicherung wurde gelöscht.",
-    "deleteError": "Sicherung konnte nicht gelöscht werden."
+    "deleteError": "Sicherung konnte nicht gelöscht werden.",
+    "import": {
+      "title": "appsettings.json importieren",
+      "description": "Wählen Sie Ihre bisherige appsettings.json aus. Enthaltene Einstellungsbereiche werden vollständig ersetzt; nicht enthaltene Bereiche bleiben erhalten. Vor dem Import wird automatisch eine Sicherung erstellt. Anschließend ist ein Neustart der Anwendung erforderlich.",
+      "selectFile": "appsettings.json auswählen",
+      "confirm": "Enthaltene Einstellungsbereiche mit den Werten aus der Datei ersetzen",
+      "submit": "Datei importieren",
+      "successTitle": "Einstellungen importiert",
+      "success": "Bitte starten Sie die Anwendung neu, damit alle Dienste die importierten Einstellungen verwenden.",
+      "errorTitle": "Import fehlgeschlagen",
+      "errors": {
+        "emptyFile": "Die ausgewählte Datei ist leer. Die Einstellungen wurden nicht geändert.",
+        "invalidJson": "Die Datei enthält kein gültiges JSON. Die Einstellungen wurden nicht geändert.",
+        "invalidSettings": "Die Datei enthält ungültige oder unvollständige Einstellungen. Die Einstellungen wurden nicht geändert.",
+        "generic": "Bitte prüfen Sie die appsettings.json. Die Einstellungen wurden nicht geändert."
+      }
+    }
   },
   "dictionary": {
     "options": "Optionen",
