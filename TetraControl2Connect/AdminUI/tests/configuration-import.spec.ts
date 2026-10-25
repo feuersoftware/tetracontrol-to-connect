@@ -55,7 +55,7 @@ test('empty files are rejected without calling the import', async ({ page }) => 
   })
   await page.getByRole('checkbox').check()
   await page.getByRole('button', { name: 'Datei importieren', exact: true }).click()
-  await expect(page.getByText('Die ausgewählte Datei ist leer.', { exact: false })).toBeVisible()
+  await expect(page.getByText('Die ausgewählte Datei ist leer. Die Einstellungen wurden nicht geändert.', { exact: true })).toBeVisible()
   await expect(page.getByText('Einstellungen importiert', { exact: true })).toHaveCount(0)
   expect(called).toBe(false)
 })
