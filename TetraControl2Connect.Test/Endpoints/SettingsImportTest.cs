@@ -3,7 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using FeuerSoftware.TetraControl2Connect.Data;
 using FeuerSoftware.TetraControl2Connect.Endpoints;
@@ -65,13 +67,16 @@ public class SettingsImportTest
                 unsupportedResponse.StatusCode.Should().Be(HttpStatusCode.UnsupportedMediaType);
 
                 // An empty JSON upload (Content-Length: 0) must not fall back to the local appsettings.json.
-                foreach (var json in new[] { "", "{invalid", """{"Logging":{"LogLevel":{"Default":"Information"}}}""",
-                    """{"TetraControlOptions":{"TetraControlPort":"invalid"}}""",
-                    """{"ProgramOptions":{"HeartbeatInterval":"invalid"}}""" })
+                foreach (var (json, error) in new[] { ("", "invalid_json"), ("{invalid", "invalid_json"),
+                    ("""{"Logging":{"LogLevel":{"Default":"Information"}}}""", "invalid_settings"),
+                    ("""{"TetraControlOptions":{"TetraControlPort":"invalid"}}""", "invalid_settings"),
+                    ("""{"ProgramOptions":{"HeartbeatInterval":"invalid"}}""", "invalid_settings") })
                 {
                     using var invalid = new StringContent(json, Encoding.UTF8, "application/json");
                     using var invalidResponse = await client.PostAsync("/api/settings/import", invalid);
                     invalidResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+                    (await invalidResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("error").GetString()
+                        .Should().Be(error, $"payload: {json}");
                 }
 
                 await using var scope = app.Services.CreateAsyncScope();

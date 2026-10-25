@@ -23,13 +23,19 @@ function selectImportFile(event: Event) {
   importConfirmed.value = false
 }
 
+// Error codes returned by POST /settings/import; the backend message is English and not shown.
+const importErrorKeys: Record<string, string> = {
+  invalid_json: 'backups.import.errors.invalidJson',
+  invalid_settings: 'backups.import.errors.invalidSettings'
+}
+
 async function importSettings() {
   if (!importFile.value || !importConfirmed.value) return
   const content = await importFile.value.text()
   if (!content.trim()) {
     toast.add({
-      title: 'Import fehlgeschlagen',
-      description: 'Die ausgewählte Datei ist leer. Die Einstellungen wurden nicht geändert.',
+      title: t('backups.import.errorTitle'),
+      description: t('backups.import.errors.emptyFile'),
       color: 'error'
     })
     return
@@ -43,15 +49,15 @@ async function importSettings() {
     })
     importConfirmed.value = false
     toast.add({
-      title: 'Einstellungen importiert',
-      description: 'Bitte starten Sie die Anwendung neu, damit alle Dienste die importierten Einstellungen verwenden.',
+      title: t('backups.import.successTitle'),
+      description: t('backups.import.success'),
       color: 'success'
     })
     await fetchBackups()
   } catch (e: any) {
     toast.add({
-      title: 'Import fehlgeschlagen',
-      description: e?.data?.message || 'Bitte prüfen Sie die appsettings.json. Die Einstellungen wurden nicht geändert.',
+      title: t('backups.import.errorTitle'),
+      description: t(importErrorKeys[e?.data?.error] ?? 'backups.import.errors.generic'),
       color: 'error'
     })
   } finally {
@@ -191,27 +197,25 @@ onMounted(fetchBackups)
     </UCard>
 
     <UCard class="mb-6">
-      <h2 class="font-semibold mb-2">appsettings.json importieren</h2>
+      <h2 class="font-semibold mb-2">{{ t('backups.import.title') }}</h2>
       <p class="text-sm text-muted mb-4">
-        Wählen Sie Ihre bisherige appsettings.json aus. Enthaltene Einstellungsbereiche werden vollständig ersetzt;
-        nicht enthaltene Bereiche bleiben erhalten. Vor dem Import wird automatisch eine Sicherung erstellt.
-        Anschließend ist ein Neustart der Anwendung erforderlich.
+        {{ t('backups.import.description') }}
       </p>
       <input
         type="file"
         accept=".json,application/json"
-        aria-label="appsettings.json auswählen"
+        :aria-label="t('backups.import.selectFile')"
         :disabled="importing"
         @change="selectImportFile"
       >
       <UCheckbox
         v-model="importConfirmed"
-        label="Enthaltene Einstellungsbereiche mit den Werten aus der Datei ersetzen"
+        :label="t('backups.import.confirm')"
         :disabled="!importFile || importing"
         class="my-4"
       />
       <UButton
-        label="Datei importieren"
+        :label="t('backups.import.submit')"
         icon="i-lucide-upload"
         :disabled="!importFile || !importConfirmed"
         :loading="importing"

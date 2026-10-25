@@ -236,9 +236,9 @@ namespace FeuerSoftware.TetraControl2Connect.Data
                 StatusOptions.SectionName, PatternOptions.SectionName, SeverityOptions.SectionName,
                 SirenCalloutOptions.SectionName, SirenStatusOptions.SectionName, ConnectOptions.SectionName];
             if (!sectionNames.Any(name => HasSection(configuration, name)))
-                throw new ArgumentException("Die Datei enthält keine unterstützten Einstellungsbereiche.");
+                throw new ArgumentException("The source does not contain any supported settings sections.");
             if (sectionNames.Any(name => configuration.GetSection(name).Value != null))
-                throw new ArgumentException("Einstellungsbereiche müssen JSON-Objekte sein.");
+                throw new ArgumentException("Settings sections must be JSON objects.");
 
             // Validate runtime types (especially TimeSpan values stored as strings) before replacing any settings.
             _ = configuration.GetSection(ProgramOptions.SectionName).Get<ProgramOptions>();
@@ -323,12 +323,12 @@ namespace FeuerSoftware.TetraControl2Connect.Data
 
             var sitesSection = section.GetSection("Sites");
             if (!sitesSection.Exists())
-                throw new ArgumentException($"\"{ConnectOptions.SectionName}\" enthält keinen Eintrag \"Sites\".");
+                throw new ArgumentException($"\"{ConnectOptions.SectionName}\" does not contain a \"Sites\" entry.");
 
             foreach (var site in GetListEntries(sitesSection))
             {
                 if (string.IsNullOrWhiteSpace(site["Name"]) || string.IsNullOrWhiteSpace(site["Key"]))
-                    throw new ArgumentException($"\"{site.Path}\" benötigt \"Name\" und \"Key\".");
+                    throw new ArgumentException($"\"{site.Path}\" requires \"Name\" and \"Key\".");
 
                 foreach (var subnetAddress in GetListEntries(site.GetSection("SubnetAddresses")))
                     _ = subnetAddress.GetValue<bool>("AlarmDirectly");
@@ -343,7 +343,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data
             // JSON null arrives as an empty string and counts as an empty list; any other scalar is malformed.
             var entries = section.GetChildren().ToList();
             if (!string.IsNullOrEmpty(section.Value) || entries.Any(e => !int.TryParse(e.Key, out _) || e.Value != null))
-                throw new ArgumentException($"\"{section.Path}\" muss eine Liste von Objekten sein.");
+                throw new ArgumentException($"\"{section.Path}\" must be a list of objects.");
             return entries;
         }
 

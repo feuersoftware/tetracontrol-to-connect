@@ -109,11 +109,19 @@ public static class SettingsEndpoints
             }
             catch (Exception ex) when (ex is JsonException or FormatException or InvalidDataException or InvalidOperationException or ArgumentException or FileNotFoundException)
             {
-                return Results.BadRequest(new { message = "Import fehlgeschlagen. Bitte prüfen Sie die appsettings.json. Die Einstellungen wurden nicht geändert." });
+                // The error code is language-neutral and translated by the Admin UI; the message is technical detail.
+                var error = ex switch
+                {
+                    FileNotFoundException => "local_file_missing",
+                    JsonException or FormatException or InvalidDataException => "invalid_json",
+                    _ => "invalid_settings",
+                };
+                logger.LogWarning(ex, "Settings import rejected ({Error}). Settings were not changed.", error);
+                return Results.BadRequest(new { error, message = ex.Message });
             }
 
             ((IConfigurationRoot)configuration).Reload();
-            return Results.Ok(new { message = "Einstellungen importiert. Bitte starten Sie die Anwendung neu." });
+            return Results.Ok(new { message = "Settings imported. Restart the application to apply them." });
         })
         .WithName("ImportSettings");
 

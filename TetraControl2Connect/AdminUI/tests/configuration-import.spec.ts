@@ -63,7 +63,7 @@ test('empty files are rejected without calling the import', async ({ page }) => 
 test('import errors are shown without reporting success', async ({ page }) => {
   await page.route('**/api/backups', route => route.fulfill({ json: [] }))
   await page.route('**/api/settings/import', route => route.fulfill({
-    status: 400, json: { message: 'Ungültige appsettings.json. Einstellungen unverändert.' }
+    status: 400, json: { error: 'invalid_settings', message: '"ConnectOptions" does not contain a "Sites" entry.' }
   }))
   await page.goto('/backups')
   await page.getByLabel('appsettings.json auswählen').setInputFiles({
@@ -72,5 +72,33 @@ test('import errors are shown without reporting success', async ({ page }) => {
   await page.getByRole('checkbox').check()
   await page.getByRole('button', { name: 'Datei importieren', exact: true }).click()
   await expect(page.getByText('Import fehlgeschlagen', { exact: true })).toBeVisible()
+  await expect(page.getByText('Die Datei enthält ungültige oder unvollständige Einstellungen. Die Einstellungen wurden nicht geändert.', { exact: true })).toBeVisible()
+  await expect(page.getByText('does not contain a "Sites" entry', { exact: false })).toHaveCount(0)
   await expect(page.getByText('Einstellungen importiert', { exact: true })).toHaveCount(0)
+})
+
+test('import card, errors and dashboard warning follow the selected language', async ({ page, context, baseURL }) => {
+  await context.addCookies([{ name: 'i18n_locale', value: 'en', url: baseURL! }])
+  await page.route('**/api/backups', route => route.fulfill({ json: [] }))
+  await page.route('**/api/settings/import', route => route.fulfill({
+    status: 400, json: { error: 'invalid_json', message: 'Unexpected character.' }
+  }))
+  await page.route('**/api/settings', route => route.fulfill({
+    json: { sections: [{ section: 'tetracontrol', exists: true }, { section: 'connect', exists: false }] }
+  }))
+  await page.route('**/api/update', route => route.fulfill({ json: { hasUpdate: false } }))
+
+  await page.goto('/backups')
+  await expect(page.getByRole('heading', { name: 'Import appsettings.json' })).toBeVisible()
+  await page.getByLabel('Select appsettings.json').setInputFiles({
+    name: 'appsettings.json', mimeType: 'application/json', buffer: Buffer.from('{invalid')
+  })
+  await page.getByRole('checkbox', { name: 'Replace the contained settings sections with the values from the file' }).check()
+  await page.getByRole('button', { name: 'Import file', exact: true }).click()
+  await expect(page.getByText('Import failed', { exact: true })).toBeVisible()
+  await expect(page.getByText('The file does not contain valid JSON. The settings were not changed.', { exact: true })).toBeVisible()
+
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'No sites configured' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Import configuration' })).toHaveAttribute('href', '/backups')
 })

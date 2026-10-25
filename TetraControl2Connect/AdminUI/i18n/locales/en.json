@@ -64,6 +64,12 @@
       "title": "Initial setup required",
       "description": "TetraControl and Connect are not configured yet. The setup wizard guides you through the basic configuration in a few steps.",
       "start": "Start setup"
+    },
+    "noSites": {
+      "title": "No sites configured",
+      "description": "Without Connect sites, no data is transferred, even if the TetraControl connection is established. Add sites or import your previous appsettings.json under Backups.",
+      "configureSites": "Configure sites",
+      "importConfiguration": "Import configuration"
     }
   },
   "live": {
@@ -109,7 +115,23 @@
     "restoreError": "Restore failed.",
     "deletedTitle": "Deleted",
     "deleted": "The backup was deleted.",
-    "deleteError": "Backup could not be deleted."
+    "deleteError": "Backup could not be deleted.",
+    "import": {
+      "title": "Import appsettings.json",
+      "description": "Select your previous appsettings.json. Settings sections contained in the file are replaced completely; sections not contained in it are kept. A backup is created automatically before the import. Afterwards, the application must be restarted.",
+      "selectFile": "Select appsettings.json",
+      "confirm": "Replace the contained settings sections with the values from the file",
+      "submit": "Import file",
+      "successTitle": "Settings imported",
+      "success": "Please restart the application so that all services use the imported settings.",
+      "errorTitle": "Import failed",
+      "errors": {
+        "emptyFile": "The selected file is empty. The settings were not changed.",
+        "invalidJson": "The file does not contain valid JSON. The settings were not changed.",
+        "invalidSettings": "The file contains invalid or incomplete settings. The settings were not changed.",
+        "generic": "Please check the appsettings.json. The settings were not changed."
+      }
+    }
   },
   "dictionary": {
     "options": "Options",
