@@ -62,7 +62,15 @@ public class DatabaseConfigurationProviderTest
     [InlineData("""{"ProgramOptions":{"HeartbeatInterval":"invalid"}}""", false)]
     [InlineData("""{"ProgramOptions":{"PollForActiveOperationBeforeFallbackDelay":"invalid"}}""", false)]
     [InlineData("""{"ConnectOptions":{"Sites":[{"Name":"Site","Key":"test-value","Sirens":[{"ExpectedHeartbeatInterval":"invalid"}]}]}}""", false)]
-    public async Task ImportFromConfiguration_InvalidSource_DoesNotChangeDatabase(string json, bool noSections)
+    [InlineData("""{"ConnectOptions":{"Sites":[{"Name":"Site","Key":"test-value","SubnetAddresses":[{"AlarmDirectly":"invalid"}]}]}}""", false)]
+    [InlineData("""{"ConnectOptions":{"Sites":"invalid"}}""", true)]
+    [InlineData("""{"ConnectOptions":{"Site":[{"Name":"Site","Key":"test-value"}]}}""", true)]
+    [InlineData("""{"ConnectOptions":{"Sites":["invalid"]}}""", true)]
+    [InlineData("""{"ConnectOptions":{"Sites":{"Site":{"Name":"Site","Key":"test-value"}}}}""", true)]
+    [InlineData("""{"ConnectOptions":{"Sites":[{"Name":"Site"}]}}""", true)]
+    [InlineData("""{"ConnectOptions":{"Sites":[{"Name":"Site","Key":"test-value","SubnetAddresses":"invalid"}]}}""", true)]
+    [InlineData("""{"ConnectOptions":{"Sites":[{"Name":"Site","Key":"test-value","Sirens":["invalid"]}]}}""", true)]
+    public async Task ImportFromConfiguration_InvalidSource_DoesNotChangeDatabase(string json, bool isStructuralError)
     {
         using var connection = new SqliteConnection("Data Source=:memory:");
         await connection.OpenAsync();
@@ -75,7 +83,7 @@ public class DatabaseConfigurationProviderTest
         var source = new ConfigurationBuilder().AddJsonStream(stream).Build();
 
         Func<Task> import = () => DatabaseConfigurationProvider.ImportFromConfiguration(db, source);
-        if (noSections)
+        if (isStructuralError)
             await import.Should().ThrowAsync<ArgumentException>();
         else
             await import.Should().ThrowAsync<InvalidOperationException>();
@@ -109,8 +117,10 @@ public class DatabaseConfigurationProviderTest
         (await db.Sites.SingleAsync()).Name.Should().Be("Existing site");
     }
 
-    [Fact]
-    public async Task ImportFromConfiguration_EmptyConnectSection_ClearsSitesButPreservesOtherSettings()
+    [Theory]
+    [InlineData("""{"ConnectOptions":{}}""")]
+    [InlineData("""{"ConnectOptions":{"Sites":[]}}""")]
+    public async Task ImportFromConfiguration_EmptyConnectSection_ClearsSitesButPreservesOtherSettings(string json)
     {
         using var connection = new SqliteConnection("Data Source=:memory:");
         await connection.OpenAsync();
@@ -119,7 +129,7 @@ public class DatabaseConfigurationProviderTest
         await DatabaseConfigurationProvider.SeedDefaults(db);
         db.Sites.Add(new SiteEntity { Name = "Existing site", Key = "existing-test-value" });
         await db.SaveChangesAsync();
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes("""{"ConnectOptions":{}}"""));
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
         var source = new ConfigurationBuilder().AddJsonStream(stream).Build();
 
         await DatabaseConfigurationProvider.ImportFromConfiguration(db, source);

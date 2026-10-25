@@ -42,6 +42,24 @@ test('import requires a file and confirmation, then uploads its contents', async
   await expect(button).toBeDisabled()
 })
 
+test('empty files are rejected without calling the import', async ({ page }) => {
+  await page.route('**/api/backups', route => route.fulfill({ json: [] }))
+  let called = false
+  await page.route('**/api/settings/import', async route => {
+    called = true
+    await route.fulfill({ json: { message: 'Importiert' } })
+  })
+  await page.goto('/backups')
+  await page.getByLabel('appsettings.json auswählen').setInputFiles({
+    name: 'appsettings.json', mimeType: 'application/json', buffer: Buffer.from('')
+  })
+  await page.getByRole('checkbox').check()
+  await page.getByRole('button', { name: 'Datei importieren', exact: true }).click()
+  await expect(page.getByText('Die ausgewählte Datei ist leer.', { exact: false })).toBeVisible()
+  await expect(page.getByText('Einstellungen importiert', { exact: true })).toHaveCount(0)
+  expect(called).toBe(false)
+})
+
 test('import errors are shown without reporting success', async ({ page }) => {
   await page.route('**/api/backups', route => route.fulfill({ json: [] }))
   await page.route('**/api/settings/import', route => route.fulfill({

@@ -84,15 +84,18 @@ public static class SettingsEndpoints
         {
             var logger = loggerFactory.CreateLogger<AppDbContext>();
             var hasBody = request.HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true;
-            if (hasBody && !request.HasJsonContentType())
+            var isJson = request.HasJsonContentType();
+            if (hasBody && !isJson)
                 return Results.StatusCode(StatusCodes.Status415UnsupportedMediaType);
 
             try
             {
                 // Read only the uploaded file (or the local file for bodyless API calls), never the DB provider.
+                // An empty JSON upload has no detectable body (Content-Length: 0) but must fail parsing
+                // instead of silently importing the local file.
                 using var source = new ConfigurationManager();
                 using var stream = new MemoryStream();
-                if (!hasBody)
+                if (!hasBody && !isJson)
                     source.SetBasePath(environment.ContentRootPath).AddJsonFile("appsettings.json", optional: false);
                 else
                 {

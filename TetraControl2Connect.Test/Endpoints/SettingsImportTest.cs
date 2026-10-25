@@ -64,7 +64,8 @@ public class SettingsImportTest
                 using var unsupportedResponse = await client.PostAsync("/api/settings/import", plainText);
                 unsupportedResponse.StatusCode.Should().Be(HttpStatusCode.UnsupportedMediaType);
 
-                foreach (var json in new[] { "{invalid", """{"Logging":{"LogLevel":{"Default":"Information"}}}""",
+                // An empty JSON upload (Content-Length: 0) must not fall back to the local appsettings.json.
+                foreach (var json in new[] { "", "{invalid", """{"Logging":{"LogLevel":{"Default":"Information"}}}""",
                     """{"TetraControlOptions":{"TetraControlPort":"invalid"}}""",
                     """{"ProgramOptions":{"HeartbeatInterval":"invalid"}}""" })
                 {

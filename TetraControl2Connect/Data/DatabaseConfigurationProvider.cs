@@ -243,11 +243,7 @@ namespace FeuerSoftware.TetraControl2Connect.Data
             // Validate runtime types (especially TimeSpan values stored as strings) before replacing any settings.
             _ = configuration.GetSection(ProgramOptions.SectionName).Get<ProgramOptions>();
             _ = configuration.GetSection(TetraControlOptions.SectionName).Get<TetraControlOptions>();
-            foreach (var site in configuration.GetSection($"{ConnectOptions.SectionName}:Sites").GetChildren())
-            {
-                foreach (var siren in site.GetSection("Sirens").GetChildren())
-                    _ = siren.GetValue<TimeSpan?>("ExpectedHeartbeatInterval");
-            }
+            ValidateConnectOptions(configuration);
 
             await using var transaction = await context.Database.BeginTransactionAsync().ConfigureAwait(false);
 
@@ -315,6 +311,41 @@ namespace FeuerSoftware.TetraControl2Connect.Data
 
         private static bool HasSection(IConfiguration configuration, string name)
             => configuration.GetChildren().Any(section => string.Equals(section.Key, name, StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>
+        /// Rejects malformed Connect settings before existing sites are deleted.
+        /// An empty section or an empty "Sites" list is allowed and intentionally clears all sites.
+        /// </summary>
+        private static void ValidateConnectOptions(IConfiguration configuration)
+        {
+            var section = configuration.GetSection(ConnectOptions.SectionName);
+            if (!section.GetChildren().Any()) return;
+
+            var sitesSection = section.GetSection("Sites");
+            if (!sitesSection.Exists())
+                throw new ArgumentException($"\"{ConnectOptions.SectionName}\" enthält keinen Eintrag \"Sites\".");
+
+            foreach (var site in GetListEntries(sitesSection))
+            {
+                if (string.IsNullOrWhiteSpace(site["Name"]) || string.IsNullOrWhiteSpace(site["Key"]))
+                    throw new ArgumentException($"\"{site.Path}\" benötigt \"Name\" und \"Key\".");
+
+                foreach (var subnetAddress in GetListEntries(site.GetSection("SubnetAddresses")))
+                    _ = subnetAddress.GetValue<bool>("AlarmDirectly");
+
+                foreach (var siren in GetListEntries(site.GetSection("Sirens")))
+                    _ = siren.GetValue<TimeSpan?>("ExpectedHeartbeatInterval");
+            }
+        }
+
+        private static List<IConfigurationSection> GetListEntries(IConfigurationSection section)
+        {
+            // JSON null arrives as an empty string and counts as an empty list; any other scalar is malformed.
+            var entries = section.GetChildren().ToList();
+            if (!string.IsNullOrEmpty(section.Value) || entries.Any(e => !int.TryParse(e.Key, out _) || e.Value != null))
+                throw new ArgumentException($"\"{section.Path}\" muss eine Liste von Objekten sein.");
+            return entries;
+        }
 
         private static void SeedProgramSettings(AppDbContext context, IConfiguration configuration, ILogger? logger)
         {

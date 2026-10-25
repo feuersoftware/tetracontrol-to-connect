@@ -25,12 +25,21 @@ function selectImportFile(event: Event) {
 
 async function importSettings() {
   if (!importFile.value || !importConfirmed.value) return
+  const content = await importFile.value.text()
+  if (!content.trim()) {
+    toast.add({
+      title: 'Import fehlgeschlagen',
+      description: 'Die ausgewählte Datei ist leer. Die Einstellungen wurden nicht geändert.',
+      color: 'error'
+    })
+    return
+  }
   importing.value = true
   try {
     await $fetch(`${apiBase}/settings/import`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: await importFile.value.text()
+      body: content
     })
     importConfirmed.value = false
     toast.add({
