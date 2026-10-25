@@ -85,11 +85,11 @@ public class SettingsImportTest
                 (await db.TetraControlSettings.SingleAsync()).TetraControlHost.Should().Be("local-file-host");
                 (await db.ProgramSettings.SingleAsync()).SendVehicleStatus.Should().BeTrue();
                 var backup = await db.SettingsBackups.OrderBy(b => b.Id).FirstAsync();
-                backup.Description.Should().Be("Automatische Sicherung vor Import");
+                backup.Description.Should().Be("automatic_before_import");
                 backup.SnapshotJson.Should().NotContain("Uploaded site");
                 using var backupsResponse = await client.GetAsync("/api/backups");
                 backupsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-                (await backupsResponse.Content.ReadAsStringAsync()).Should().Contain("Automatische Sicherung vor Import");
+                (await backupsResponse.Content.ReadAsStringAsync()).Should().Contain("automatic_before_import");
 
                 using var restoreResponse = await client.PostAsync($"/api/backups/{backup.Id}/restore", null);
                 restoreResponse.StatusCode.Should().Be(HttpStatusCode.OK);

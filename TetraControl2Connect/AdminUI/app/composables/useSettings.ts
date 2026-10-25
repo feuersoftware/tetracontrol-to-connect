@@ -11,10 +11,10 @@ export function useSettings() {
     loading.value = true
     try {
       return await $fetch<Record<string, any>>(`${apiBase}/settings`)
-    } catch (e: any) {
+    } catch {
       toast.add({
         title: t('settings.loadErrorTitle'),
-        description: e?.data?.message || e?.message || t('settings.loadAllError'),
+        description: t('settings.loadAllError'),
         color: 'error'
       })
       return null
@@ -27,10 +27,10 @@ export function useSettings() {
     loading.value = true
     try {
       return await $fetch<T>(`${apiBase}/settings/${sectionName}`)
-    } catch (e: any) {
+    } catch {
       toast.add({
         title: t('settings.loadErrorTitle'),
-        description: e?.data?.message || e?.message || t('settings.loadError', { section: sectionName }),
+        description: t('settings.loadError', { section: sectionName }),
         color: 'error'
       })
       return null
@@ -52,10 +52,10 @@ export function useSettings() {
         color: 'success'
       })
       return true
-    } catch (e: any) {
+    } catch {
       toast.add({
         title: t('settings.saveErrorTitle'),
-        description: e?.data?.message || e?.message || t('settings.saveError', { section: sectionName }),
+        description: t('settings.saveError', { section: sectionName }),
         color: 'error'
       })
       return false

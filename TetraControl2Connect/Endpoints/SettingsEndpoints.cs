@@ -104,7 +104,7 @@ public static class SettingsEndpoints
                     source.AddJsonStream(stream);
                 }
 
-                await BackupEndpoints.CreateBackupAsync(db, "Automatische Sicherung vor Import");
+                await BackupEndpoints.CreateBackupAsync(db, BackupDescriptions.AutomaticBeforeImport);
                 await DatabaseConfigurationProvider.ImportFromConfiguration(db, source, logger);
             }
             catch (Exception ex) when (ex is JsonException or FormatException or InvalidDataException or InvalidOperationException or ArgumentException or FileNotFoundException)

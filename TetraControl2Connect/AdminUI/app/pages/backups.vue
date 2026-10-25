@@ -69,10 +69,10 @@ async function fetchBackups() {
   loading.value = true
   try {
     backups.value = await $fetch<Backup[]>(`${apiBase}/backups`)
-  } catch (e: any) {
+  } catch {
     toast.add({
       title: t('backups.loadErrorTitle'),
-      description: e?.data?.message || e?.message || t('backups.loadError'),
+      description: t('backups.loadError'),
       color: 'error'
     })
   } finally {
@@ -90,10 +90,10 @@ async function createBackup() {
       color: 'success'
     })
     await fetchBackups()
-  } catch (e: any) {
+  } catch {
     toast.add({
       title: t('common.error'),
-      description: e?.data?.message || e?.message || t('backups.createError'),
+      description: t('backups.createError'),
       color: 'error'
     })
   } finally {
@@ -110,10 +110,10 @@ async function restoreBackup(id: number) {
       description: t('backups.restored'),
       color: 'success'
     })
-  } catch (e: any) {
+  } catch {
     toast.add({
       title: t('common.error'),
-      description: e?.data?.message || e?.message || t('backups.restoreError'),
+      description: t('backups.restoreError'),
       color: 'error'
     })
   } finally {
@@ -130,10 +130,10 @@ async function deleteBackup(id: number) {
       color: 'success'
     })
     await fetchBackups()
-  } catch (e: any) {
+  } catch {
     toast.add({
       title: t('common.error'),
-      description: e?.data?.message || e?.message || t('backups.deleteError'),
+      description: t('backups.deleteError'),
       color: 'error'
     })
   }
@@ -151,11 +151,11 @@ function formatDate(dateStr: string) {
   })
 }
 
-// Backup descriptions are stored by the backend in German; translate the known ones for display.
+// Backup descriptions are language-neutral codes from the backend; translate them for display.
 const backendDescriptionKeys: Record<string, string> = {
-  'Automatische Sicherung': 'backups.descriptions.automatic',
-  'Automatische Sicherung vor Import': 'backups.descriptions.automaticBeforeImport',
-  'Manuelle Sicherung': 'backups.descriptions.manual'
+  automatic: 'backups.descriptions.automatic',
+  automatic_before_import: 'backups.descriptions.automaticBeforeImport',
+  manual: 'backups.descriptions.manual'
 }
 
 function displayDescription(description: string) {

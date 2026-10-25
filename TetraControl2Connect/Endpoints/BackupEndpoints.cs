@@ -5,6 +5,16 @@ using System.Text.Json;
 
 namespace FeuerSoftware.TetraControl2Connect.Endpoints;
 
+/// <summary>
+/// Language-neutral backup description codes. The Admin UI translates them.
+/// </summary>
+public static class BackupDescriptions
+{
+    public const string Automatic = "automatic";
+    public const string AutomaticBeforeImport = "automatic_before_import";
+    public const string Manual = "manual";
+}
+
 public static class BackupEndpoints
 {
     public static WebApplication MapBackupEndpoints(this WebApplication app)
@@ -23,7 +33,7 @@ public static class BackupEndpoints
         // POST /api/backups — Create a manual backup
         group.MapPost("/", async (AppDbContext db) =>
         {
-            var backup = await CreateBackupAsync(db, "Manuelle Sicherung");
+            var backup = await CreateBackupAsync(db, BackupDescriptions.Manual);
             return Results.Ok(new { backup.Id, backup.CreatedAt, backup.Description });
         }).WithName("CreateBackup");
 
@@ -64,7 +74,7 @@ public static class BackupEndpoints
 
         if (!hasBackupToday)
         {
-            await CreateBackupAsync(db, "Automatische Sicherung");
+            await CreateBackupAsync(db, BackupDescriptions.Automatic);
         }
     }
 
